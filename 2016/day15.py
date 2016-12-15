@@ -13,15 +13,13 @@ def parse_instructions(instructions):
 def sim_disks(disks):
     end_state = []
     state = []
+    sizes = []
     for i, (size, position) in enumerate(disks, 1):
-        if size - i > 0:
-            end_state.append(size- i)
-        elif (size - i) % size == 0:
-            end_state.append(0)
-        else:
-            end_state.append(i - size)
         state.append(position)
-    sizes = [x for x, _ in disks]
+        end_val = abs((size - i) % size)
+        end_state.append(end_val)
+        sizes.append(size)
+
     possible_states = reduce(lambda x, y: x * y, sizes)
     step = 0
     while True:
@@ -34,6 +32,7 @@ def sim_disks(disks):
             return
 
 
+#stolen from reddit
 def alt_sim(disks):
     step = -1
     while True:
@@ -62,6 +61,7 @@ def get_results(instructions, part2=False):
     if part2:
         disks.append((11, 0))
     return sim_disks(disks)
+    return alt_sim(disks)
 
 
 if __name__ == '__main__':
@@ -70,3 +70,6 @@ if __name__ == '__main__':
     print sim_disks([(5, 4), (2, 1)])
     print get_results(instructions, part2=False)
     print get_results(instructions, part2=True)
+
+
+
