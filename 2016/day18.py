@@ -1,15 +1,19 @@
 from time import time
 
-IT = {'^' : {'^' : {'^' : '.', '.' : '^'}, '.' : {'^' : '.', '.' : '^'}}, 
-      '.' : {'^' : {'^' : '^', '.' : '.'}, '.' : {'^' : '^', '.' : '.'}}}
+IT = {'...' : '.',
+      '..^' : '^',
+      '.^.' : '.',
+      '.^^' : '^',
+      '^..' : '^',
+      '^.^' : '.',
+      '^^.' : '^',
+      '^^^' : '.'}
 
 def next_line(line):
     line = '.' + line + '.'
     output = ''
-    for i, center in enumerate(line[1:-1], 1):
-        left = line[i - 1]
-        right = line[i + 1]
-        output += IT[left][center][right]
+    for i in xrange(len(line[1:-1])):
+        output += IT[line[i:i+3]]
     return output
 
 
@@ -36,7 +40,6 @@ def get_results(instructions, part2=False):
         line = next_line(line)
         count += line.count('.')
     return count
-
 
 
 if __name__ == '__main__':
