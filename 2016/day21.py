@@ -1,101 +1,109 @@
 from utilities import timeit
 
+class Encoder(object):
+    def __init__(self, instructions, string=''):
+        self.moves = {'swap position'     : self._swap_position,
+                      'swap letter'       : self._swap_letters,
+                      'rotate left'       : self._rotate_left,
+                      'rotate right'      : self._rotate_right,
+                      'rotate based'      : self._rotate_by_x,
+                      'reverse positions' : self._reverse,
+                      'move position'     : self._move}
+        self._parse_instructions(instructions)
+        self.string = string
 
+    def _parse_instructions(self, instructions):
+        self.operations = []
+        for line in instructions.split('\n'):
+            words = line.split()
+            action = self.moves[' '.join(words[:2])]
+            first = int(words[2]) if words[2].isdigit() else words[2]
+            second = int(words[-1]) if words[-1].isdigit() else words[-1]
+            if len(words) != 7:
+                self.operations.append((action, first, second))
+            else:
+                self.operations.append((action, second, first))
 
+    def _swap_position(self, p1, p2):
+        if p1 > p2:
+            p1, p2 = p2, p1
+        a = self.string[p2]
+        b = self.string[p1]
+        beginning = self.string[:p1]
+        middle = self.string[p1 + 1:p2]
+        end = self.string[p2 + 1:]
+        self.string = '{}{}{}{}{}'.format(beginning, a, middle, b, end)
 
-def parse_instructions(instructions, moves):
-    output = []
-    for line in instructions.split('\n'):
-        words = line.split()
-        action = moves[' '.join(words[:2])]
-        c = len(words)
-        f = int(words[2]) if words[2].isdigit() else words[2]
-        if c == 4:
-            output.append((action, f, None))
-        else:
-            s = int(words[-1]) if words[-1].isdigit() else words[-1]
-        if c == 5 or c == 6:
-            output.append((action, f, s))
-        elif c == 7:
-            output.append((action, s, None))
-    return output
-        
+    def _swap_letters(self, a, b):
+        self.string = self.string.replace(a, '#').replace(b, a).replace('#', b)
 
-def swap_position(s, p1, p2, undo):
-    if p1 > p2:
-        p1, p2 = p2, p1
-    return '{}{}{}{}{}'.format(s[:p1], s[p2], s[p1 + 1:p2], s[p1], s[p2 + 1:])
+    def _rotate_left(self, r, *args):
+        r = r % len(self.string)
+        self.string = self.string[r:] + self.string[:r]
 
+    def _rotate_right(self, r, *args):
+        r = -1 * r % len(self.string)
+        self.string = self.string[r:] + self.string[:r]
 
-def swap_letters(s, a, b, undo):
-    return s.replace(a, '*#*').replace(b, a).replace('*#*', b)
-
-
-def rotate_left(s, d, undo):   
-    if undo:
-        return rotate_right(s, d, False)     
-    d = d % len(s)
-    return s[d:] + s[:d]
-
-
-def rotate_right(s, d, undo):
-    if undo:
-        return rotate_left(s, d, False)
-    d = -1 * d % len(s)
-    return s[d:] + s[:d]
-
-
-def rotate_by_x(s, X, undo):
-    index = s.find(X)
-    if undo:
-        replace = {0 : 1, 1 : 9, 2 : 6, 3 : 2, 4 : 7, 5 : 3, 6 : 8, 7 : 4}
-        return rotate_left(s, replace[index], False)
-
-    if index >= 4:
+    def _rotate_by_x(self, a, *args):
+        index = self.string.find(a)
+        if index >= 4:
+            index += 1
         index += 1
-    index += 1
-    return rotate_right(s, index, undo)
+        self._rotate_right(index)
+
+    def _reverse(self, p1, p2):
+        begin = self.string[:p1]
+        swapped = self.string[p1:p2 + 1]
+        end = self.string[p2 + 1:]
+        self.string = begin + swapped[::-1] + end
+
+    def _move(self, p1, p2):
+        a = self.string[p1]
+        temp = self.string[:p1] + self.string[p1 + 1:]
+        self.string = temp[:p2] + a + temp[p2:]
+
+    def __str__(self):
+        return self.string
+
+    def __call__(self, string=None):
+        if string:
+            self.string = string
+        for action, arg1, arg2 in self.operations:
+            action(arg1, arg2)
 
 
-def reverse(s, X, Y, undo):
-    begin = s[:X]
-    swapped = s[X:Y + 1]
-    end = s[Y + 1:]
-    return begin + swapped[::-1] + end
+class Decoder(Encoder):
+    def __init__(self, instructions, string=None):
+        super(Decoder, self).__init__(instructions, string)
+        for i, (action, arg1, arg2) in enumerate(self.operations):
+            if 'left' in action.__name__:
+                self.operations[i] = (self._rotate_right, arg1, arg2)
+            elif 'right' in action.__name__:
+                self.operations[i] = (self._rotate_left, arg1, arg2)
+            elif 'move' in action.__name__:
+                self.operations[i] = (action, arg2, arg1)
+        self.operations = self.operations[::-1]
 
-
-def move(s, p1, p2, undo):
-    if undo:
-        p1, p2 = p2, p1
-    a = s[p1]
-    temp = s[:p1] + s[p1 + 1:]
-    return temp[:p2] + a + temp[p2:]
+    def _rotate_by_x(self, a, *args):
+        self._rotate_left(1)
+        index = self.string.find(a)
+        if index % 2 == 0:
+            self._rotate_left(index/2)
+        else:
+            self._rotate_right((len(self.string) - index)/2)
 
 
 @timeit
 def get_results(instructions, part2=False):
-    string = 'abcdefgh'
-    moves = {'swap position'     : swap_position,
-             'swap letter'       : swap_letters,
-             'rotate left'       : rotate_left,
-             'rotate right'      : rotate_right,
-             'rotate based'      : rotate_by_x,
-             'reverse positions' : reverse,
-             'move position'     : move}
-    operations = parse_instructions(instructions, moves)
-    encoder = Encoder(instructions)
-    encoder(string)
-    print encoder
     if part2:
-        operations = operations[::-1]
         string = 'fbgdceah'
-    for action, option1, option2 in operations:
-        if option2 is not None:
-            string = action(string, option1, option2, part2)
-        else:
-            string = action(string, option1, part2)
-    return string
-
+        helper = Decoder(instructions, string)
+    else:
+        string = 'abcdefgh'
+        helper = Encoder(instructions, string)
+    helper()
+    return helper
 
 
 if __name__ == '__main__':
