@@ -21,12 +21,14 @@ def parse_instructions(instructions):
 def find_available_pairs(data):
     s = sorted(data.items(), key=lambda x: -x[1]['avail'])
     b = s[0][1]['avail']
-    m = s[0][1]['avail']
+    max_val = s[0][1]['avail']
+    empty = s[0][0]
+    goal = max(s, key=lambda x: x[0][0])[0][0], 0
     count = 0
     for entry in s:
         if entry[1]['used'] <= b and entry[1]['used'] != 0:
             count += 1
-    return count, m
+    return count, max_val, empty, goal
 
 
 class DataGrid(object):
@@ -153,13 +155,11 @@ class DataGrid(object):
 @timeit
 def get_results(instructions, part2=False):
     data = parse_instructions(instructions)
-    count, max_val = find_available_pairs(data)
-    
+    count, max_val, empty, goal = find_available_pairs(data)
     if part2:
-        grid = DataGrid(data, (22, 25), (36, 0), max_val, animate=True)
-        return grid.navigate_path()
-    else:
-        return count
+        grid = DataGrid(data, empty, goal, max_val, animate=True)
+        print grid.navigate_path()
+    return count
 
 
 if __name__ == '__main__':
