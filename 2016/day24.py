@@ -42,8 +42,8 @@ def print_map(duct_map, path=None):
     path_color = '\033[31m{}\033[0m'
     wall_color = '\033[30m{}\033[0m'
     digit_color = '\033[37m{}\033[0m'
+    o = ''
     for i, row in enumerate(duct_map):
-        o = ''
         for j, point in enumerate(row):
             if (i, j) in path:
                 o += path_color.format(point)
@@ -53,7 +53,8 @@ def print_map(duct_map, path=None):
                 o += digit_color.format(point)
             else:
                 o += point
-        sys.stdout.write(o)
+        o += '\n'
+    sys.stdout.write(o)
     sys.stdout.flush()
     time.sleep(0.3)
 
@@ -96,7 +97,7 @@ def build_x_y(rest, d_map, animate):
             if j > i:
                 continue
             path = search(rest[i], rest[j], d_map)
-            if animate:
+            if animate and path:
                 print_map(d_map, path)
             other_d[i][j] = other_d[j][i] = len(path) - 1
             other_paths[i][j] = other_paths[j][i] = path
