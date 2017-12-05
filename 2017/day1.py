@@ -1,4 +1,5 @@
 from aoc_utilities import get_instructions
+import os
 
 
 def get_next(index, length, mode):
@@ -9,7 +10,7 @@ def get_next(index, length, mode):
     return next_index % length
 
 
-def compute_sum(data, mode):
+def get_answer(data, mode):
     total = 0
     N = len(data)
     for i, digit in enumerate(data):
@@ -20,6 +21,7 @@ def compute_sum(data, mode):
 
 
 if __name__ == '__main__':
-    inputs = get_instructions(1)
-    print(compute_sum(inputs, mode='part1'))
-    print(compute_sum(inputs, mode='part2'))
+    day = int(os.path.basename(__file__).split('.')[0].split('y')[1])
+    inputs = get_instructions(day)
+    print(get_answer(inputs, mode='part1'))
+    print(get_answer(inputs, mode='part2'))
