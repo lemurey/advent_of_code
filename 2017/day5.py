@@ -9,7 +9,6 @@ def parse_instructions(data):
     return output
 
 
-
 def get_answer(data, mode):
     instructions = parse_instructions(data)
     index = 0
@@ -23,7 +22,6 @@ def get_answer(data, mode):
         instructions[index] += offset
         index += jump
     return steps
-
 
 
 if __name__ == '__main__':

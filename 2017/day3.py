@@ -14,15 +14,15 @@ def make_mods(size, direction='negative'):
 
 
 def check_neighbors(values, key):
-    dirs = (complex( 0,  1),
-        complex( 0, -1),
-        complex( 1,  0),
-        complex(-1,  0),
-        complex( 1,  1),
-        complex(-1, -1),
-        complex( 1, -1),
-        complex(-1,  1)
-        )
+    dirs = (complex(0,  1),
+            complex(0, -1),
+            complex(1,  0),
+            complex(-1,  0),
+            complex(1,  1),
+            complex(-1, -1),
+            complex(1, -1),
+            complex(-1,  1)
+            )
     total = 0
     for check in dirs:
         if check + key in values:
