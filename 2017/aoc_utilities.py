@@ -3,7 +3,7 @@ import os
 
 
 def get_instructions(day):
-    file_name = 'instructions_day_{}.txt'.format(day)
+    file_name = 'instructions_day_{:0>2}.txt'.format(day)
     if file_name not in os.listdir('.'):
         print('downloading from web')
         if 'aoc_code' not in os.environ:
@@ -27,8 +27,9 @@ def get_instructions(day):
 if __name__ == '__main__':
     max_test_day = 1
     for test_day in range(1, max_test_day + 1):
-        with open('instructions_day_{}.txt'.format(test_day), 'r') as f:
+        f_name = 'instructions_day_{:0>2}.txt'.format(test_day)
+        with open(f_name, 'r') as f:
             real = f.read().strip()
-        os.remove('instructions_day_{}.txt'.format(test_day))
+        os.remove(f_name)
         test = get_instructions(test_day)
         print(test == real)
