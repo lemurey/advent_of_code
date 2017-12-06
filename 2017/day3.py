@@ -32,7 +32,7 @@ def check_neighbors(values, key):
 
 def next_square(values, key, size, steps, n):
     mod, mods = make_mods(size, direction='positive')
-    for step, _ in enumerate(xrange(steps), 1):
+    for step, _ in enumerate(range(steps), 1):
         if step in mods:
             mod = mods[step]
         total = check_neighbors(values, key)

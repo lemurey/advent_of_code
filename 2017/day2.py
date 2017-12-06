@@ -23,7 +23,7 @@ def run_row(row, mode):
 def get_answer(data, mode):
     checksum = 0
     for row in data.split('\n'):
-        parsed = map(int, row.split())
+        parsed = list(map(int, row.split()))
         value = run_row(parsed, mode)
         checksum += value
     return checksum

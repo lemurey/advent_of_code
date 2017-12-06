@@ -28,3 +28,4 @@ if __name__ == '__main__':
     test = get_instructions(1)
     with open('instructions_day_1.txt', 'r') as f:
         real = f.read().strip()
+    print(test==real)

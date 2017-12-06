@@ -1,4 +1,5 @@
 from aoc_utilities import get_instructions
+from utilities import timeit
 import os
 
 
@@ -9,6 +10,7 @@ def parse_instructions(data):
     return output
 
 
+@timeit
 def get_answer(data, mode):
     instructions = parse_instructions(data)
     index = 0
