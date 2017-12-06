@@ -25,7 +25,10 @@ def get_instructions(day):
 
 
 if __name__ == '__main__':
-    test = get_instructions(1)
-    with open('instructions_day_1.txt', 'r') as f:
-        real = f.read().strip()
-    print(test==real)
+    max_test_day = 1
+    for test_day in range(1, max_test_day + 1):
+        with open('instructions_day_{}.txt'.format(test_day), 'r') as f:
+            real = f.read().strip()
+        os.remove('instructions_day_{}.txt'.format(test_day))
+        test = get_instructions(test_day)
+        print(test == real)

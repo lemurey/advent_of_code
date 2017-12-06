@@ -1,12 +1,13 @@
 from aoc_utilities import get_instructions
 import os
+from utilities import timeit
 
 
 def process_data(data):
     state = []
     for entry in data.split():
         state.append(int(entry))
-    return tuple(state)
+    return state
 
 
 def get_max_block(state):
@@ -16,34 +17,33 @@ def get_max_block(state):
         if block > max_val:
             max_val = block
             max_index = i
-    return max_index
+    return max_index, max_val
 
 
-def run_cycle(state):
-    state = list(state)
-    n = len(state)
-    index = get_max_block(state)
-    values = state[index]
+def run_cycle(state, n):
+    index, values = get_max_block(state)
     state[index] = 0
-    count = 0
     for _ in range(values):
         index = (index + 1) % n
         state[index] += 1
-    return tuple(state)
+    return state
 
 
+@timeit
 def get_answer(data, mode):
     states = {}
     state = process_data(data)
     count = 0
+    n = len(state)
     while True:
-        if state in states:
+        check = tuple(state)
+        if check in states:
             if mode == 'part1':
                 return count
             else:
-                return count - states[state]
-        states[state] = count
-        state = run_cycle(state)
+                return count - states[check]
+        states[check] = count
+        state = run_cycle(state, n)
         count += 1
 
 
