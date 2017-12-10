@@ -31,8 +31,8 @@ class Node:
 
     def set_parent(self, other):
         if not isinstance(other, Node):
-            raise NotImplementedError('Cannot have non Node be child or parent '
-                                      'of Node')
+            raise NotImplementedError('Cannot have non Node be child or parent'
+                                      ' of Node')
         if self._parent is not None:
             if self in self._parent._children:
                 self._parent._children.remove(self)

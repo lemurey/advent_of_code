@@ -38,8 +38,8 @@ def get_answer(data, part2=False):
 
 
 def run_tests():
-    print(get_answer('<>' ,True) == 0)
-    print(get_answer('<random characters>' ,True) == 17)
+    print(get_answer('<>', True) == 0)
+    print(get_answer('<random characters>', True) == 17)
     print(get_answer('<<<<>', True) == 3)
     print(get_answer('<{!>}>', True) == 2)
     print(get_answer('<!!>', True) == 0)

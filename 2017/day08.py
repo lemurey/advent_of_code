@@ -11,6 +11,7 @@ OPERATIONS = {'>': gt,
               'inc': add,
               'dec': sub}
 
+
 def parse_instructions(instruction):
     register, operand, value = instruction.split()
     return register, OPERATIONS[operand], int(value)
