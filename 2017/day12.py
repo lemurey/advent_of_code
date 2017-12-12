@@ -1,5 +1,4 @@
 from aoc_utilities import get_instructions
-from collections import deque
 import os
 
 

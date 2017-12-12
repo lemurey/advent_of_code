@@ -1,6 +1,5 @@
 from aoc_utilities import get_instructions
 import os
-from collections import deque
 
 
 STEPS = {'n': (0, 1, -1), 'ne': (1, 0, -1), 'se': (1, -1, 0),
