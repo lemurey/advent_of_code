@@ -24,15 +24,10 @@ def get_answer(data, part2=False):
 
     severity = 0
     for location, period in periods.items():
-        depth = (period - 2) / 2
+        depth = (period / 2) + 1
         if location % period == 0:
             severity += location * depth
-    return severity
-
-    firewall = Firewall(data, part2, visualize=visualize)
-    if part2:
-        return firewall.run()
-    return firewall.check_severity()
+    return int(severity)
 
 
 if __name__ == '__main__':
