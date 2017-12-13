@@ -29,7 +29,6 @@ def get_answer(data, part2=False):
             severity += location * depth
     return severity
 
-
     firewall = Firewall(data, part2, visualize=visualize)
     if part2:
         return firewall.run()
