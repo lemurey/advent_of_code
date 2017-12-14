@@ -1,6 +1,7 @@
 from aoc_utilities import get_instructions
 from collections import deque
 from day10 import knothash
+from utilities import timeit
 import os
 
 
@@ -39,21 +40,25 @@ class Defrag:
             self.regions[(n_row, n_col)] = self.cur_region
             self._one_process(n_row, n_col)
 
+    def _process(self, row, col):
+        current_value = self.grid[row][col]
+        if current_value == 0:
+            self.regions[(row, col)] = -1
+            self._zero_process(row, col)
+        else:
+            self.regions[(row, col)] = self.cur_region
+            self._one_process(row, col)
+        return current_value
+
     def regionize(self):
         if self.regionized:
             return self.cur_region
         self.q.append((0, 0))
         while self.q:
             row, col = self.q.popleft()
-            if (row, col) in self.regions:
-                continue
-            if self.grid[row][col] == 0:
-                self.regions[(row, col)] = -1
-                self._zero_process(row, col)
-                continue
-            self.regions[(row, col)] = self.cur_region
-            self._one_process(row, col)
-            self.cur_region += 1
+            if (row, col) not in self.regions:
+                check = self._process(row, col)
+                self.cur_region += check
         self.cur_region -= 1
         self.regionized = True
         return self.cur_region
