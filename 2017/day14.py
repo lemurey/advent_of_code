@@ -1,97 +1,86 @@
 from aoc_utilities import get_instructions
-import os
-from day10 import knothash
 from collections import deque
+from day10 import knothash
+import os
 
 
-def process_row(seed, row):
+class Defrag:
+    def __init__(self, data, max_ind=127):
+        self.grid = make_grid(data, max_ind + 1)
+        self.max_ind = max_ind
+        self.regions = {}
+        self.q = deque()
+        self.cur_region = 1
+        self.regionized = False
+
+    def _neighbors(self, row, col):
+        if col < self.max_ind:
+            yield row, col + 1
+        if col > 0:
+            yield row, col - 1
+        if row > 0:
+            yield row - 1, col
+        if row < self.max_ind:
+            yield row + 1, col
+
+    def _zero_process(self, row, col):
+        for neighbor in self._neighbors(row, col):
+            if neighbor not in self.regions:
+                self.q.append(neighbor)
+
+    def _one_process(self, row, col):
+        for n_row, n_col in self._neighbors(row, col):
+            if (n_row, n_col) in self.regions:
+                continue
+            if self.grid[n_row][n_col] == 0:
+                self.regions[(n_row, n_col)] = -1
+                self._zero_process(n_row, n_col)
+                continue
+            self.regions[(n_row, n_col)] = self.cur_region
+            self._one_process(n_row, n_col)
+
+    def regionize(self):
+        if self.regionized:
+            return self.cur_region
+        self.q.append((0, 0))
+        while self.q:
+            row, col = self.q.popleft()
+            if (row, col) in self.regions:
+                continue
+            if self.grid[row][col] == 0:
+                self.regions[(row, col)] = -1
+                self._zero_process(row, col)
+                continue
+            self.regions[(row, col)] = self.cur_region
+            self._one_process(row, col)
+            self.cur_region += 1
+        self.cur_region -= 1
+        self.regionized = True
+        return self.cur_region
+
+
+def process_row(seed, row, max_size):
     hex_val = knothash('{}-{}'.format(seed, row))
-    bin_string = '{:0>128}'.format(bin(int(hex_val, 16))[2:])
+    bin_string = '{value:0>{size}}'.format(size=max_size,
+                                           value=bin(int(hex_val, 16))[2:])
     return list(map(int, bin_string))
 
 
-def neighbors(row, col):
-    if col < 127:
-        yield row, col + 1
-    if col > 0:
-        yield row, col - 1
-    if row > 0:
-        yield row - 1, col
-    if row < 127:
-        yield row + 1, col
-
-
-def zero_process(row, col, q, regions):
-    for neighbor in neighbors(row, col):
-        if neighbor not in regions:
-            q.append(neighbor)
-
-
-def one_process(row, col, q, regions, grid):
-    cur_region = regions[(row, col)]
-    for n_row, n_col in neighbors(row, col):
-        if (n_row, n_col) in regions:
-            continue
-        if grid[n_row][n_col] == 0:
-            regions[(n_row, n_col)] = -1
-            zero_process(n_row, n_col, q, regions)
-            continue
-        regions[(n_row, n_col)] = cur_region
-        one_process(n_row, n_col, q, regions, grid)
-
-
-def find_regions(grid):
-    q = deque()
-    q.append((0, 0))
-    regions = {}
-    cur_region = 1
-    while q:
-        row, col = q.popleft()
-        if (row, col) in regions:
-            continue
-        if grid[row][col] == 0:
-            regions[(row, col)] = -1
-            zero_process(row, col, q, regions)
-            continue
-        regions[(row, col)] = cur_region
-        one_process(row, col, q, regions, grid)
-        cur_region += 1
-
-    return max(regions.values())
-
-
-def print_regions(regions):
-    size = max(regions)[0]
-    output = ''
-    for i in range(size + 1):
-        line = ''
-        for j in range(size + 1):
-            if regions[(i, j)] == -1:
-                line += '.'
-            else:
-                line += str(regions[(i, j)])
-        output += line + '\n'
-    print(output)
+def make_grid(data, max_size=128):
+    grid = []
+    for row_num in range(max_size):
+        grid.append(process_row(data, row_num, max_size))
+    return grid
 
 
 def get_answer(data, part2=False):
-    grid = []
-    for row_num in range(128):
-        grid.append(process_row(data, row_num))
-    if part2:
-        return find_regions(grid)
-    return sum([sum(x) for x in grid])
+    d = Defrag(data)
+    print(sum([sum(x) for x in d.grid]))
+    return d.regionize()
 
 
 if __name__ == '__main__':
     day = int(os.path.basename(__file__).split('.')[0].split('y')[1])
-    # grid = [[0, 0, 1, 0, 1],
-    #         [0, 1, 1, 0, 1],
-    #         [0, 0, 0, 0, 1],
-    #         [1, 1, 0, 1, 0],
-    #         [1, 0, 0, 1, 0]]
-    # print(find_regions(grid))
-    # print(get_answer('flqrgnkx', part2=True))
     inputs = get_instructions(day)
-    print(get_answer(inputs, part2=False))
+    # print(get_answer(inputs, part2=False))
     print(get_answer(inputs, part2=True))
