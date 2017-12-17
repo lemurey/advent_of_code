@@ -1,8 +1,8 @@
 from aoc_utilities import get_instructions
 import os
 
-class Dance:
 
+class Dance:
     def __init__(self, data=None, length=16):
         self.letters = list('abcdefghijklmnopqrstuvwxyz'[:length])
         self.moves = []
@@ -82,8 +82,6 @@ def get_answer(data, part2=False):
 
 if __name__ == '__main__':
     day = int(os.path.basename(__file__).split('.')[0].split('y')[1])
-    d = Dance(data= 's1,x3/4,pe/b', length=5)
-    print(d[1])
     inputs = get_instructions(day)
     print(get_answer(inputs, part2=False))
     print(get_answer(inputs, part2=True))
