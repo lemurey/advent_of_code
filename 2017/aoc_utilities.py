@@ -14,7 +14,7 @@ def get_instructions(day):
                         os.environ['aoc_code'] = value.strip()
         cookie = {'session': os.environ['aoc_code']}
         url = 'http://adventofcode.com/2017/day/{}/input'.format(day)
-        instructions = requests.get(url, cookies=cookie).text.strip()
+        instructions = requests.get(url, cookies=cookie).text.rstrip()
         with open(file_name, 'w') as f:
             f.write(instructions)
     else:
