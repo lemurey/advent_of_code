@@ -5,10 +5,28 @@ from itertools import chain
 import os
 
 
-class Particle(list):
+class Particle:
+
+    def __init__(self, p, v, a):
+        self.p = p
+        self.v = v
+        self.a = a
+        self.dead = False
+
+    def update(self):
+        self.v = self.v + self.a
+        self.p = self.p + self.v
+
+    def kill(self):
+        self.dead = True
+
+    def alive(self):
+        return not self.dead
+
+class Coordinate(list):
 
     def __add__(self, other):
-        out = Particle([0, 0, 0])
+        out = Coordinate([0, 0, 0])
         if isinstance(other, float) or isinstance(other, int):
             for i, val in enumerate(self):
                 out[i] = val + other
@@ -18,7 +36,7 @@ class Particle(list):
         return out
 
     def __mul__(self, other):
-        out = Particle([0, 0, 0])
+        out = Coordinate([0, 0, 0])
         if isinstance(other, float) or isinstance(other, int):
             for i, val in enumerate(self):
                 out[i] = val * other
@@ -26,6 +44,17 @@ class Particle(list):
             for i, val in enumerate(self):
                 out[i] = val * other[i]
         return out
+
+    def __eq__(self, other):
+        if not isinstance(other, Coordinate):
+            return False
+        for i, val in enumerate(self):
+            if other[i] != val:
+                return False
+        return True
+
+    def __hash__(self):
+        return hash(tuple(self))
 
     def spherical(self):
         self.r = sqrt(self[0] ** 2 + self[1] ** 2 + self[2] ** 2)
@@ -37,7 +66,7 @@ def clean_up(string):
         if i > 2:
             continue
         out.append(int(entry.strip('<').strip('>')))
-    return Particle(out)
+    return Coordinate(out)
 
 
 def collide(p1, v1, a1, p2, v2, a2):
@@ -104,17 +133,43 @@ def collisions(p, v, a):
     return particles
 
 
+@timeit
+def sim_version(particles):
+    cycle = 0
+    last_killed = 0
+    while cycle < last_killed + 100:
+        positions = {}
+        for particle in particles:
+            if particle.alive():
+                particle.update()
+                positions[particle.p] = positions.get(particle.p, 0) + 1
+
+        for particle in particles:
+            if particle.alive():
+                if positions[particle.p] > 1:
+                    particle.kill()
+                    last_killed = cycle
+        cycle += 1
+
+    return [p for p in particles if p.alive()]
+
+
 def get_answer(data, part2=False):
 
     positions = []
     velocities = []
     accelerations = []
+    particles = []
 
     for i, line in enumerate(data.split('\n')):
         p, v, a = map(clean_up, line.split('<')[1:])
+
         p.spherical()
         v.spherical()
         a.spherical()
+
+        particles.append(Particle(p, v, a))
+
         positions.append(p)
         velocities.append(v)
         accelerations.append(a)
@@ -124,19 +179,15 @@ def get_answer(data, part2=False):
         smallest = min(to_search, key=lambda x: (x[0].r, x[1].r, x[2].r))
         return positions.index(smallest[2])
 
-    test_size = 1000
+    p_left = sim_version(particles)
 
-    p = positions[:test_size]
-    v = velocities[:test_size]
-    a = accelerations[:test_size]
+    particles_left = collisions(positions, velocities, accelerations)
 
-    particles_left = collisions(p, v, a)
-
-    return len(particles_left)
+    return len(particles_left), len(p_left)
 
 
 if __name__ == '__main__':
     day = int(os.path.basename(__file__).split('.')[0].split('y')[1])
     inputs = get_instructions(day)
-    print(get_answer(inputs, part2=False))
+    # print(get_answer(inputs, part2=False))
     print(get_answer(inputs, part2=True))
