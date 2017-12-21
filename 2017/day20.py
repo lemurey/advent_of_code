@@ -23,6 +23,7 @@ class Particle:
     def alive(self):
         return not self.dead
 
+
 class Coordinate(list):
 
     def __add__(self, other):
