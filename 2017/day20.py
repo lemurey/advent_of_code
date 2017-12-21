@@ -1,11 +1,8 @@
 from aoc_utilities import get_instructions
-from numpy import sqrt, arccos, arcsin, sin
+from math import sqrt
 from utilities import timeit
+from itertools import chain
 import os
-
-class Anything:
-    def __eq__(self, other):
-        return True
 
 
 class Particle(list):
@@ -20,21 +17,6 @@ class Particle(list):
                 out[i] = val + other[i]
         return out
 
-    def __radd__(self, other):
-        return self + other
-
-    def __iadd__(self, other):
-        if isinstance(other, float) or isinstance(other, int):
-            for i, val in enumerate(self):
-                self[i] = val + other
-        else:
-            for i, val in enumerate(self):
-                self[i] = val + other[i]
-        return self
-
-    def __rmul__(self, other):
-        return self * other
-
     def __mul__(self, other):
         out = Particle([0, 0, 0])
         if isinstance(other, float) or isinstance(other, int):
@@ -44,42 +26,6 @@ class Particle(list):
             for i, val in enumerate(self):
                 out[i] = val * other[i]
         return out
-
-    def __imul__(self, other):
-        if isinstance(other, float) or isinstance(other, int):
-            for i, val in enumerate(self):
-                self[i] = val * other
-        else:
-            for i, val in enumerate(self):
-                self[i] = val * other[i]
-        return self
-
-    def __sub__(self, other):
-        out = Particle([0, 0, 0])
-        for i, val in enumerate(self):
-            out[i] = val * other[i]
-        return out
-
-    def __truediv__(self, other):
-        out = Particle([0, 0, 0])
-        if isinstance(other, float) or isinstance(other, int):
-            for i, val in enumerate(self):
-                out[i] = val / other
-        else:
-            for i, val in enumerate(self):
-                out[i] = val / other[i]
-        return out
-
-    def __eq__(self, other):
-        if not isinstance(other, Particle):
-            return False
-        for i, val in enumerate(self):
-            if round(val - other[i], 5) != 0:
-                return False
-        return True
-
-    def __hash__(self):
-        return hash(tuple(self))
 
     def spherical(self):
         self.r = sqrt(self[0] ** 2 + self[1] ** 2 + self[2] ** 2)
@@ -94,93 +40,70 @@ def clean_up(string):
     return Particle(out)
 
 
-def d(p):
-    return sum(map(abs, p))
-
-
 def collide(p1, v1, a1, p2, v2, a2):
 
-    c = (p2 - p1)
-    b = (v2 + a2 / 2) - (v1 + a1 / 2)
-    a = (a2  - a1 ) / 2
+    times = []
+    for i in range(3):
+        c = (p2[i] - p1[i])
+        b = (v2[i] + a2[i] / 2) - (v1[i] + a1[i] / 2)
+        a = (a2[i] - a1[i]) / 2
+        square_root_term = b ** 2 - 4 * a * c
 
-    t1 = b ** 2 - 4 * a * c
-    if t1 < 0:
-        return False
+        if a == 0 and b == 0 and c == 0:
+            times.append((True, ))
+        elif a == 0 and b != 0:
+            times.append((abs(c) / abs(b), ))
+        elif square_root_term > 0:
+            square_root_term = sqrt(square_root_term)
+            o1 = (-1 * b + square_root_term) / (2 * a)
+            o2 = (-1 * b - square_root_term) / (2 * a)
+            times.append((o1, o2))
+        else:
+            return []
 
-    if a == 0:
-        if v1== v2:
-            if p1 == p2:
-                return (0, Anything())
-            else:
-                return False
-        return (abs(c) / abs(b), )
-    t1 = sqrt(t1)
-    o1 = (-1 * b + t1) / (2 * a)
-    o2 = (-1 * b - t1)  / (2 * a)
-    if o1 >= 0 and o2 < 0:
-        return (o1, )
-    if o2 >= 0 and o1 < 0:
-        return (o2, )
-    if o1 < 0 and o2 < 0:
-        return False
-    return (o1, o2)
-
-
-def closest_particle(a, p, v):
-    min_r = float('inf')
-    closest_p = 0
-    for i, acc in enumerate(a):
-        update = False
-        if acc.r < min_r:
-            update = True
-        elif acc.r == min_r:
-            if v[closest_p].r > v[i].r:
-                update = True
-            elif v[closest_p].r == v[i].r:
-                if p[closest_p].r > p[i].r:
-                    update = True
-        if update:
-            min_r = acc.r
-            closest_p = i
-
-    return closest_p
+    if (True,) in times:
+        ind = times.index((True, ))
+        times[ind] = times[ind - 1] + times[(ind + 1) % 3]
+    x, y, z = times
+    return set(x).intersection(set(y)).intersection(set(z))
 
 
 def p_at_t(t, p, v, a):
     return p + v * t + a * (t * (t + 1) / 2)
 
 
-def test_collisions(p1, v1, a1, p2, v2, a2):
-
-    x, y, z = 0, 1, 2
-    test_x = collide(p1[x], v1[x], a1[x], p2[x], v2[x], a2[x])
-    test_y = collide(p1[y], v1[y], a1[y], p2[y], v2[y], a2[y])
-    test_z = collide(p1[z], v1[z], a1[z], p2[z], v2[z], a2[z])
-    if not test_x:
-        return
-    if not test_y:
-        return
-    if not test_z:
-        return
-
-    for x_time in test_x:
-        for y_time in test_y:
-            for z_time in test_z:
-                if x_time == y_time and z_time == x_time:
-                    if isinstance(x_time, Anything):
-                        if isinstance(y_time, Anything):
-                            if isinstance(z_time, Anything):
-                                yield 0
-                            else:
-                                yield z_time
-                        else:
-                            yield y_time
-                    else:
-                        yield x_time
+def check_collisions(p, v, a, i, j, time, particles):
+    c1 = p_at_t(time, p[i], v[i], a[i])
+    c2 = p_at_t(time, p[j], v[j], a[j])
+    if c1 == c2:
+        to_remove = set([i, j])
+    else:
+        to_remove = set()
+    for k in particles:
+        if k == i or k == j:
+            continue
+        c3 = p_at_t(time, p[k], v[k], a[k])
+        if c3 == c1:
+            to_remove = to_remove.union([i, k])
+        if c3 == c2:
+            to_remove = to_remove.union([j, k])
+    return to_remove
 
 
 @timeit
+def collisions(p, v, a):
+    n = len(p)
+    particles = set(range(n))
+    for i in range(n):
+        for j in range(i + 1, n):
+            if (i not in particles) or (j not in particles):
+                continue
+            for time in collide(p[i], v[i], a[i], p[j], v[j], a[j]):
+                for index in check_collisions(p, v, a, i, j, time, particles):
+                    particles.remove(index)
+    return particles
+
+
 def get_answer(data, part2=False):
 
     positions = []
@@ -197,65 +120,19 @@ def get_answer(data, part2=False):
         accelerations.append(a)
 
     if not part2:
-        return closest_particle(accelerations, positions, velocities)
+        to_search = zip(accelerations, velocities, positions)
+        smallest = min(to_search, key=lambda x: (x[0].r, x[1].r, x[2].r))
+        return positions.index(smallest[2])
 
-    iterations = 0
+    test_size = 1000
 
-    t_val = 1000
+    p = positions[:test_size]
+    v = velocities[:test_size]
+    a = accelerations[:test_size]
 
-    positions = positions[:t_val]
-    velocities = velocities[:t_val]
-    accelerations = accelerations[:t_val]
+    particles_left = collisions(p, v, a)
 
-    particles = set(range(len(positions)))
-
-    multi_way = 0
-
-    for i in list(particles):
-        for j in list(particles):
-            if i == j:
-                continue
-            if (i not in particles) or (j not in particles):
-                continue
-            if iterations % 100 == 0:
-                print('at iteration {} {} particles left'.format(iterations, len(particles)))
-            p1, v1, a1 = positions[i], velocities[i], accelerations[i]
-            p2, v2, a2 = positions[j], velocities[j], accelerations[j]
-            remove_i = False
-            remove_j = False
-            for time in test_collisions(p1, v1, a1, p2, v2, a2):
-                check1 = p_at_t(time, p1, v1, a1)
-                check2 = p_at_t(time, p2, v2, a2)
-                if check1 == check2:
-                    remove_i = True
-                    remove_j = True
-                for k in list(particles):
-                    if k not in particles:
-                        continue
-                    iterations += 1
-                    if k == i or k == j:
-                        continue
-                    p3, v3, a3 = positions[k], velocities[k], accelerations[k]
-                    check3 = p_at_t(time, p3, v3, a3)
-                    if check1 == check3:
-                        multi_way += 1
-                        particles.remove(k)
-                        remove_i = True
-                    if check2 == check3:
-                        if k in particles:
-                            particles.remove(k)
-                            multi_way += 1
-                        remove_j = True
-
-            if remove_i:
-                if i in particles:
-                    particles.remove(i)
-            if remove_j:
-                if j in particles:
-                    particles.remove(j)
-
-    print(iterations)
-    return len(particles)
+    return len(particles_left)
 
 
 if __name__ == '__main__':
