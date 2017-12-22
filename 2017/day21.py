@@ -42,7 +42,7 @@ class Grid:
         for i in range(joins):
             for j in range(joins):
                 t = '/'.join(''.join(row[j * size: (j + 1) * size])
-                             for row in self.grid[i * size: (i + 1 ) * size])
+                             for row in self.grid[i * size: (i + 1) * size])
                 yield Grid(t)
 
     def on(self):
@@ -75,7 +75,7 @@ class Grid:
 def single_cycle(g, transforms):
     if g.size % 2 == 0:
         joins = g.size // 2
-        size =2
+        size = 2
     else:
         joins = g.size // 3
         size = 3
@@ -124,7 +124,7 @@ def run_cycles(n, transforms):
         counts = run_count
 
     if n % 3 == 0:
-        total_on = sum(g.on() * c for g,c in counts.items())
+        total_on = sum(g.on() * c for g, c in counts.items())
     else:
         total_on = 0
         for g, mult in counts.items():
@@ -156,7 +156,7 @@ def get_answer(data, part2=False):
     #     g = single_cycle(g, transforms)
     # return g.on()
 
-    #I originally ran it manually 18 times, fancy multiples of 3 idea
+    # I originally ran it manually 18 times, fancy multiples of 3 idea
     # came from reddit
     return run_cycles(iters, transforms)
 
