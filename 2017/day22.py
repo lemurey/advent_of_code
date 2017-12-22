@@ -3,22 +3,6 @@ from utilities import timeit
 import os
 
 
-'''
-wake up:
-    - if current node is infected:
-        - turns right
-    - else:
-        - turns left
-    - if current node is clean:
-        - infect node
-    else:
-        - clean node
-    - move forward one step
-
-
-'''
-
-
 class Worm:
     def __init__(self, nodes, part2=False):
         self.direction = 1j
