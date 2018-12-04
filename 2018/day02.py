@@ -1,5 +1,4 @@
 from aoc_utilities import get_instructions
-from utilities import timeit
 import os
 
 
@@ -25,7 +24,6 @@ def comp_lines(a, b):
     return False
 
 
-@timeit
 def alt_part2(data):
     for i in range(len(data[0])):
         checks = set()
@@ -36,7 +34,6 @@ def alt_part2(data):
             checks.add(update)
 
 
-@timeit
 def get_answer(data, part2=False):
     if not part2:
         twos, threes = 0, 0
@@ -59,6 +56,6 @@ if __name__ == '__main__':
     year, day = os.path.realpath(__file__).split('/')[-2:]
     day = int(day.split('.')[0].split('y')[1])
     inputs = get_instructions(year, day)
-    # print(get_answer(inputs, part2=False))
-    print(get_answer(inputs, part2=True))
+    print(get_answer(inputs, part2=False))
+    # print(get_answer(inputs, part2=True))
     print(alt_part2(inputs))
