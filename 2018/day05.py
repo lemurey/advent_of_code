@@ -2,7 +2,7 @@ from aoc_utilities import get_instructions
 import os
 
 
-def checks(a, b):
+def check(a, b):
     if a.lower() == b.lower():
         if ((a.isupper() and b.islower()) or
             (a.islower() and b.isupper())):
@@ -13,20 +13,15 @@ def checks(a, b):
 def folding(line):
     output = ''
     location = 0
-    while location < (len(line) - 1):
-        if len(output) == 0:
-            output = line[location]
-        cur_char = output[-1]
-        next_char = line[location + 1]
-        if checks(cur_char, next_char):
-            if len(output) == 1:
-                output = ''
-                location += 1
-            else:
-                output = output[:-1]
+    for char in line:
+        if not output:
+            output += char
+            continue
+        prev = output[-1]
+        if check(char, prev):
+            output = output[:-1]
         else:
-            output += next_char
-        location += 1
+            output += char
     return output
 
 
