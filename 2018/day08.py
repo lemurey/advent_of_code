@@ -47,11 +47,6 @@ class Node(object):
             self.value = self._get_value()
         return self.value
 
-    def __getitem__(self, item):
-        if (item >= len(self.children)) or item == 0:
-            return 0
-        return self.children[item - 1].calc_value()
-
     def __repr__(self):
         return 'Node object id_num: {} -- value: {}'.format(self.id,
             self.calc_value())
