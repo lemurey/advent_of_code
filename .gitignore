@@ -3,3 +3,4 @@
 *.env
 images/*
 convert.sh
+test.txt
