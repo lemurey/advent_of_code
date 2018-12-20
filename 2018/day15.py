@@ -11,6 +11,7 @@ OFFSETS = ((-1, 0), (0, -1), (0, 1), (1, 0))
 class colors:
     red = '\x1b[1;31;40m'
     blue = '\x1b[1;34;40m'
+    yellow = '\x1b[1;33;40m'
     green = '\x1b[1;32;40m'
     white = '\x1b[1;37;40m'
     end = '\x1b[0m'
@@ -21,6 +22,8 @@ class colors:
             color = cls.red
         elif c == 'blue':
             color = cls.blue
+        elif c == 'yellow':
+            color = cls.yellow
         elif c == 'green':
             color = cls.green
         elif c == 'white':

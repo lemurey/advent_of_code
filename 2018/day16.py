@@ -3,8 +3,8 @@ import os
 
 
 class OPR(object):
-    def __init__(self):
-        self.registers = [0, 0, 0, 0]
+    def __init__(self, num_registers = 4):
+        self.registers = [0 for _ in range(num_registers)]
         self.op_list = (self.addr, self.addi, self.mulr, self.muli, self.banr,
                         self.bani, self.borr, self.bori, self.setr, self.seti,
                         self.gtir, self.gtri, self.gtrr, self.eqir, self.eqri,
@@ -12,8 +12,8 @@ class OPR(object):
         self.op_map = {f.__name__: f for f in self.op_list}
 
     def set_registers(self, reg):
-        if len(reg) != 4:
-            raise ValueError('register must have 4 entries')
+        # if len(reg) != 4:
+        #     raise ValueError('register must have 4 entries')
         self.registers = reg[:]
 
     def run_check(self, br, inputs, ar, debug=False):
@@ -27,7 +27,7 @@ class OPR(object):
             return c
         return len(c.keys())
 
-    def run_program(self, codes, mappings):
+    def run_program(self, codes, mappings=None):
         for op, a, b, c in codes:
             f = self.op_map[mappings[op]]
             f(a, b, c)

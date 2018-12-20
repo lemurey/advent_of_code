@@ -1,6 +1,5 @@
 from aoc_utilities import get_instructions
 import os
-from utilities import timeit
 from day16 import OPR
 
 class OPR2(OPR):
@@ -21,9 +20,15 @@ class OPR2(OPR):
         self.ip_num += 1
         return p_reg
 
-    def _run_program(self, codes, f=None):
+    def _run_program(self, codes, f=None, early_stop=None):
         o_s = 'ip={} {} {} {} {} {} {}\n'
-        while True:
+        count = 0
+        if early_stop is not None:
+            cond = lambda x: x < early_stop
+        else:
+            cond = lambda x: True
+        while cond(count):
+            count += 1
             ind = self.ip_num
             if 0 <= ind < len(codes):
                 op, a, b, c = codes[ind]
@@ -34,12 +39,12 @@ class OPR2(OPR):
                 f.write(o_s.format(self.ip_num, p_reg,
                         op, a, b, c, self.registers))
 
-    def run_program(self, codes, debug=False):
+    def run_program(self, codes, debug=False, early_stop=None):
         if debug:
             with open('day19_debug.log', 'w') as f:
-                self._run_program(codes, f)
+                self._run_program(codes, f, early_stop=early_stop)
         else:
-            self._run_program(codes)
+            self._run_program(codes, early_stop=early_stop)
 
 def process_codes(data):
     program = []
@@ -66,10 +71,12 @@ def my_decompiled(n):
 
 
 def get_answer(data, part2=False):
+    ip, program = process_codes(data)
+    r = OPR2(ip)
     if part2:
-        n = 10551345
-    else:
-        n = 945
+        r.registers[0] = 1
+    r.run_program(program, debug=True, early_stop=20)
+    n = r.registers[5]
     return my_decompiled(n)
 
 
