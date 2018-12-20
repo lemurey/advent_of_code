@@ -192,34 +192,13 @@ def process_data(data):
     return grid
 
 
-
-'''
-184920 is too low
-202648 is too high
-'''
-
-
-
 def get_answer(data, part2=False):
     grid = process_data(data)
     game = GameOfTrees(grid)
     if part2:
         total_runs = 1000000000
-        # test_runs = 800
-        # start_checks = 600
-        # if 'game_of_trees.log' in os.listdir('.'):
-        #     vals = []
-        #     with open('game_of_trees.log', 'r') as f:
-        #         for line in f:
-        #             vals.append(int(line.split(': ')[1]))
-        # else:
-        #     vals = game.run_game(test_runs, show=False)
-
-
-        # stationary_set = set(vals[600:test_runs])
-        # sl = len(stationary_set)
-        # print 'stationary cycle found: {} '.format(sl)
         stationary_set = game.find_cycles()
+        sl = len(stationary_set)
         start_checks = len(game.values) - 50
 
         ordered = []
