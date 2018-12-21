@@ -38,10 +38,11 @@ class OPR2(OPR):
             if f is not None:
                 f.write(o_s.format(self.ip_num, p_reg,
                         op, a, b, c, self.registers))
+        self.count = count
 
-    def run_program(self, codes, debug=False, early_stop=None):
+    def run_program(self, codes, debug=False, early_stop=None, day=19):
         if debug:
-            with open('day19_debug.log', 'w') as f:
+            with open('day{}_debug.log'.format(day), 'a') as f:
                 self._run_program(codes, f, early_stop=early_stop)
         else:
             self._run_program(codes, early_stop=early_stop)

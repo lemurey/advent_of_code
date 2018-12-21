@@ -10,7 +10,6 @@ class Mapper(object):
         self.dirs = {'W': complex(-1), 'N': complex(0, -1),
                      'E': complex(1), 'S': complex(0, 1)}
         self.locations = []
-        # self.path = {}
         self.distances = defaultdict(int)
 
     def move(self, d):
