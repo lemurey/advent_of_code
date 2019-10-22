@@ -83,6 +83,7 @@ class Caves(object):
                 continue
             yield cx, cy, tool
 
+
     def search_paths(self):
         q = [(0, 0, 0, 1)] # time, x, y, equiped tool
         best = {}
