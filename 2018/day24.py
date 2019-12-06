@@ -1,9 +1,9 @@
 import os
-import sys
-sys.path.append('/Users/lee.murray/projects/advent_of_code')
 from aoc_utilities import get_instructions
 import re
 
+
+### this code results in an answer off by 1 for part2, not sure why
 
 class Unit:
 
@@ -318,8 +318,8 @@ def get_answer(data, part2=False, verbose=False):
         # for i in range(36):
             # w._search_helper(i)
         # w._search_helper(boost=93)
-        # winner = w.search()
-        w(boost=93, verbose=True)
+        winner = w.search()
+        # w(boost=35, verbose=True)
     else:
         outcome = w(verbose=verbose)
         winner = outcome[0][outcome[1]]
