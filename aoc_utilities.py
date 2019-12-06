@@ -1,5 +1,6 @@
 import requests
 import os
+from time import time
 
 
 def get_instructions(year, day):
@@ -21,6 +22,27 @@ def get_instructions(year, day):
         with open(file_name, 'r') as f:
             instructions = f.read().splitlines()
     return instructions
+
+
+def timeit(function):
+    def timed(*args, **kwargs):
+        s_t = time()
+        result = function(*args, **kwargs)
+        e_t = time()
+        out = '{} {} took {:.2f} sec'
+        print(out.format(function.__name__, kwargs, e_t - s_t))
+        return result
+    return timed
+
+
+def cacheit(function):
+    cache = {}
+    def wrapper_cache(*args, **kwargs):
+        cache_key = args + tuple(kwargs.items())
+        if cache_key not in cache:
+            cache[cache_key] = function(*args, **kwargs)
+        return cache[cache_key]
+    return wrapper_cache
 
 
 if __name__ == '__main__':
