@@ -2,9 +2,6 @@ import os
 from aoc_utilities import get_instructions
 import re
 
-
-### this code results in an answer off by 1 for part2, not sure why
-
 class Unit:
 
     def __init__(self, size, hp, damage, dtype, initiative, immune, weak, team,
@@ -77,7 +74,7 @@ class Fight:
         self.damage_done = {'Immune System': False, 'Infection': False}
 
     def _select_sort(self, unit):
-        return (unit.effective_power(), -unit.initiative)
+        return (-unit.effective_power(), -unit.initiative)
 
     def _attack_sort(self, *args):
         att, _ = args[0]
@@ -86,14 +83,13 @@ class Fight:
     def _select_targets(self):
         options = [x for x in self.groups if x.size != 0]
         targets = []
-
-        for unit in sorted(self.groups, key=self._select_sort, reverse=True):
+        for unit in sorted(self.groups, key=self._select_sort):
             target = unit.pick_target(options)
             targets.append((unit, target))
             if target is None:
                 continue
-            options.remove(target)
 
+            options.remove(target)
         return targets
 
     def _get_target_string(self, targets):
@@ -312,19 +308,13 @@ def parse_text(data):
 
 def get_answer(data, part2=False, verbose=False):
     groups = parse_text(data)
-
     w = War(groups)
     if part2:
-        # for i in range(36):
-            # w._search_helper(i)
-        # w._search_helper(boost=93)
         winner = w.search()
-        # w(boost=35, verbose=True)
     else:
         outcome = w(verbose=verbose)
         winner = outcome[0][outcome[1]]
     return winner
-
 
 
 if __name__ == '__main__':
