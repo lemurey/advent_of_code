@@ -2,14 +2,6 @@ from aoc_utilities import get_instructions
 import os
 
 
-def follow_chains(d, key, count=0):
-    for entry in d[key]:
-        count += 1
-        if entry in d:
-            count = follow_chains(d, entry, count)
-    return count
-
-
 def path_to_com(orbits, start):
     path = set()
     current = start
@@ -20,7 +12,7 @@ def path_to_com(orbits, start):
 
 
 def parse_inputs(data):
-    orbits ={}
+    orbits = {}
     for line in data:
         base, orbit = line.split(')')
         orbits[orbit] = base
@@ -37,6 +29,7 @@ def get_answer(data):
 
     def sort_func(x):
         return len(path_to_com(orbits, x))
+
     you = orbits['YOU']
     san = orbits['SAN']
 
