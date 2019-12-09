@@ -8,9 +8,15 @@ class Intcode():
         self.program = program
         self.program += [0] * 10000
         self.input = input
-        self.output_func = lambda x: print('{}{}'.format(x, self.sep), end='')
+
         if mode == 'debug':
             self.output_func = print
+        elif mode == 'single':
+            self.output_func = lambda x: print('{}{}'.format(x, sep), end='')
+        elif mode == 'linked':
+            self.output_func = self._linked_output
+        else:
+            self.output_func = lambda x: None
         self.orig = [x for x in program]
         self.sep = sep
         self.secondary = secondary
@@ -21,6 +27,7 @@ class Intcode():
         self.cur_ind = 0
         self.relative_base = 0
         self.halted = False
+        self.waiting = False
 
         self.OPS = {
             1: self.__add,
@@ -63,8 +70,9 @@ class Intcode():
         self._call_op(op, modes, details)
 
     def run(self):
-        while not self.halted:
+        while not (self.halted or self.waiting):
             self.step()
+        return self.output_val
 
     def _call_op(self, op, modes, details):
         saved_index = self.cur_ind
@@ -115,9 +123,14 @@ class Intcode():
 
         print(f'{self.cur_ind:4}: {name:4} {arg_disp} + ({val_disp})')
 
+    def _linked_output(self, value):
+        self.waiting = True
+
     # Ops
     def __halt(self):
         self.halted = True
+        if self.mode == 'linked':
+            self.parent.final[self.indicator] = True
 
     def __add(self, a1, a2, o):
         self.program[o] = a1 + a2

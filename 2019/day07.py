@@ -1,7 +1,7 @@
 from aoc_utilities import get_instructions
 import os
 from intcode import Intcode
-from itertools import cycle
+from itertools import cycle, permutations
 
 
 ### TODO: make sure this works with new style Intcode
@@ -44,6 +44,7 @@ class Runner():
         while not self.final['E']:
             comp = next(comps)
             comp.secondary = input_val
+            comp.waiting = False
             input_val = comp.run()
 
         if input_val > self.max_output:
@@ -58,31 +59,19 @@ def get_answer(data, part2=False):
     if part2:
         nums = (5, 6, 7, 8, 9)
 
-    for p1 in nums:
-        for p2 in nums:
-            if p2 == p1:
-                continue
-            for p3 in nums:
-                if p3 in (p1, p2):
-                    continue
-                for p4 in nums:
-                    if p4 in (p1, p2, p3):
-                        continue
-                    for p5 in nums:
-                        if p5 in (p1, p2, p3, p4):
-                            continue
-                        sequences.append((p1, p2, p3, p4, p5))
+    sequences = list(permutations(nums, 5))
 
     if part2:
         r = Runner(sequences, program)
         return r.run()
 
     max_output = 0
+    input_val = 0
     for sequence in sequences:
         input_val = 0
         for phase in sequence:
             comp = Intcode([x for x in program], input=phase,
-                           secondary=input_val)
+                           secondary=input_val, mode='')
             input_val = comp.run()
         if input_val > max_output:
             max_output = input_val
