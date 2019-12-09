@@ -3,6 +3,9 @@ import os
 from intcode import Intcode
 from itertools import cycle
 
+
+### TODO: make sure this works with new style Intcode
+
 def parse_inputs(data):
     return list(map(int, data[0].split(',')))
 
