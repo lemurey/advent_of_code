@@ -8,22 +8,28 @@ class Intcode():
         self.program = program
         self.program += [0] * 10000
         self.input = input
+        self.first = True
+        self.debug = False
 
         if mode == 'debug':
             self.output_func = print
+            self.debug = True
         elif mode == 'single':
             self.output_func = lambda x: print('{}{}'.format(x, sep), end='')
         elif mode == 'linked':
             self.output_func = self._linked_output
+        elif mode == 'robot':
+            self.first = False
+            self.output_func = self._robot_output
         else:
             self.output_func = lambda x: None
+
         self.orig = [x for x in program]
-        self.sep = sep
         self.secondary = secondary
         self.mode = mode
         self.parent = parent
         self.indicator = indicator
-        self.first = True
+
         self.cur_ind = 0
         self.relative_base = 0
         self.halted = False
@@ -104,7 +110,9 @@ class Intcode():
             return self.program[c_val + self.relative_base]
 
     def _print_op(self, op, raw, vals, modes):
-        if self.mode != 'debug':
+        # if self.mode != 'debug':
+        #     return
+        if not self.debug:
             return
         name = op.__name__[2:].upper()
         arg_strings = []
@@ -124,6 +132,10 @@ class Intcode():
         print(f'{self.cur_ind:4}: {name:4} {arg_disp} + ({val_disp})')
 
     def _linked_output(self, value):
+        self.waiting = True
+
+    def _robot_output(self, value):
+        # print(value, end=', ')
         self.waiting = True
 
     # Ops
