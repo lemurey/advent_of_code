@@ -43,7 +43,7 @@ class Moon:
         e = self.energy()
         return (f'pos=<x={self.x:3}, y={self.y:3} z={self.z:3}>, '
                 f'vel=<x={self.vx:3}, y={self.vy:3} z={self.vz:3}>'
-                # f'\nEnergy: {e}'
+                f'\nEnergy: {e}'
                 )
 
     def __repr__(self):
