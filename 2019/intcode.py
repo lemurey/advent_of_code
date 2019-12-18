@@ -75,6 +75,11 @@ class Intcode():
         details = self.arg_details[opcode]
         self._call_op(op, modes, details)
 
+    def reset(self):
+        self.cur_ind = 0
+        self.halted = False
+        self.waiting = False
+
     def run(self):
         while not (self.halted or self.waiting):
             self.step()
