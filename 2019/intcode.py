@@ -146,6 +146,7 @@ class Intcode():
     # Ops
     def __halt(self):
         self.halted = True
+        self.output_val = -1
         if self.mode == 'linked':
             self.parent.final[self.indicator] = True
 

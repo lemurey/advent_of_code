@@ -42,6 +42,7 @@ class Cabinet:
         self.show = show
         self.min_y = None
         self.iters = 0
+        self.score_deltas = set()
 
     def _get_three(self):
         num_ = 0
@@ -76,7 +77,10 @@ class Cabinet:
 
         x, y, num = self._get_three()
         if x == -1 and y == 0:
+            prev_score = self.score
             self.score = num
+            score_delta = num - prev_score
+            self.score_deltas.add(score_delta)
         elif (x, y) in self.grid:
             self._update(x, y, num)
             self.draw = True
@@ -90,7 +94,6 @@ class Cabinet:
                 self.paddle_pos = (x, y)
         if self.draw and self.show:
             self.show_grid()
-
 
     def _get_velocity(self, x, y):
         self.vx = x - self.ball_pos[0]
@@ -121,7 +124,6 @@ class Cabinet:
         if new.type == 'o':
             self._get_velocity(x, y)
             self.pred_dir = self._calc_move(x, y)
-
             self.ball_pos = (x, y)
         if new.type == '_':
             self.paddle_pos = (x, y)
@@ -132,7 +134,6 @@ class Cabinet:
 
     def show_grid(self):
         os.system('clear')
-        time.sleep(1e-10)
         if self.min_y is None:
             self.min_y = int(min(self.grid, key=lambda x: x[1])[1])
             self.max_y = int(max(self.grid, key=lambda x: x[1])[1])
@@ -150,7 +151,7 @@ class Cabinet:
                 row += val.type
             out += row
             out += '\n'
-        out += str(self.score)
+        out += '{}, {}'.format(self.score, self.num_blocks)
         if self.iters > 0:
             out += ', {}'.format(self.iters)
         out += '\n'
