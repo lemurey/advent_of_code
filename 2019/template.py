@@ -11,4 +11,4 @@ if __name__ == '__main__':
     day = int(day.split('.')[0].split('y')[1])
     inputs = get_instructions(year, day)
     print(get_answer(inputs, part2=False))
-    print(get_answer(inputs, part2=True))
+    # print(get_answer(inputs, part2=True))
