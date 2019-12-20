@@ -1,12 +1,15 @@
 ID_NUM = 1
 
+class Memory(dict):
+    def __getitem__(self, idx):
+        return self.get(idx, 0)
+
 
 class Intcode():
     def __init__(self, program, input=ID_NUM, sep='|',
                  secondary=0, mode='single', parent=None,
                  indicator=None):
-        self.program = program
-        self.program += [0] * 10000
+        self.program = Memory(enumerate(program))
         self.input = input
         self.first = True
         self.debug = False
