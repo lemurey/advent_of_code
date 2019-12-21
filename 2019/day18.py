@@ -1,5 +1,3 @@
-import sys
-sys.path.append('/Users/lee.murray/projects/advent_of_code/')
 from aoc_utilities import get_instructions
 import os
 from day17 import colors as c
