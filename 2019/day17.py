@@ -5,6 +5,7 @@ from aoc_utilities import get_instructions
 import os
 from intcode import Intcode
 from collections import deque
+import time
 
 
 class colors:
@@ -64,6 +65,7 @@ class MapGrid:
         self.start_d = self.dirs[self.orig[self.start]]
         self.to_visit = {k: 0 for k in self.orig if self.orig[k] == '#'}
         self.to_visit[self.start] = 1
+        self.top_score = len(self.to_visit)
 
     def _get_grid_bounds(self):
         self.min_y = int(min(self.grid, key=lambda x: x.imag).imag)
@@ -124,24 +126,53 @@ class MapGrid:
                     print('trying to visit non # space')
         return position, d, visits
 
-    def check_path(self, path):
+    def check_path(self, path, score=False):
         to_visit = {k: v for k, v in self.to_visit.items()}
         _, _, to_visit = self.follow_path(path, self.start, self.start_d, to_visit)
         if all(x == 1 for x in to_visit.values()):
             return True
+        if score:
+            return sum(to_visit.values())
         return False
+
+    def display_path(self, path):
+        new = {k: v for k,v in self.orig.items()}
+        position = self.start
+        d = self.start_d
+        for n in path.split(','):
+            if n == '':
+                continue
+            if n in ('L', 'R'):
+                d = self.turn_to_d[n, d]
+                continue
+            step = int(n)
+            for _ in range(step):
+                position += d
+                new[position] = colors.color(new[position], 'red')
+        new[position] = colors.color(self.facings[d], 'white')
+        self.grid = new
+        print(self)
+        self._reset()
+
 
     def search(self):
         position = self.start
         d = self.start_d
 
-        Q = deque([('', position, d)])
+        Q = deque([('', position, d, set([position]))])
         iters = 0
+        seen = set()
         while Q:
             iters += 1
-            path, position, d = Q.popleft()
-            if iters % 1000 == 0:
-                print('{}: {}'.format(iters, len(Q)))
+            path, position, d, visited = Q.popleft()
+            visited = set([x for x in visited])
+            if path in seen:
+                continue
+            seen.add(path)
+            # if iters % 10000 == 0:
+            #     score = self.check_path(path, True)
+            #     self.display_path(path)
+            #     print('{}: {} - {}'.format(iters, len(Q), score))
             if self.check_path(path):
                 return path.rstrip(',')
 
@@ -152,14 +183,19 @@ class MapGrid:
                     turn = self.d_to_turn[(d, next_d)]
                     npath = path + '{},'.format(turn)
                     nd = self.turn_to_d[(turn, d)]
-                    Q.append((npath, position, nd))
+
+                    next_pos = position + nd
+                    if next_pos in visited and len(valids) > 1:
+                        continue
+                    Q.append((npath, position, nd, visited))
             elif ns == 'step':
                 valids = self._find_distance(position, d)
                 for num_steps, np in valids:
+                    if np in visited:
+                        continue
+                    visited.add(np)
                     npath = path + '{},'.format(num_steps)
-                    Q.append((npath, np, d))
-            if iters > 10000:
-                return
+                    Q.append((npath, np, d, visited))
 
     def _next_step(self, path, position, d):
         check = path[:-1]
@@ -212,9 +248,10 @@ def score_intersections(intersections):
 
 class Robot:
     def __init__(self, program):
-        self.core = Intcode(program, mode='robot')
+        self.core = Intcode(program, mode='ascii robot')
         self.grid = {}
         self.init_grid()
+        self.seen = set()
 
     def init_grid(self):
         position = 0 + 0j
@@ -238,6 +275,70 @@ class Robot:
         val = self.core.run()
         return val
 
+    def _to_ascii(self, string, joiner=''):
+        vals = []
+        for char in string:
+            vals.append(ord(char))
+        return vals
+
+    def check_output(self):
+        while True:
+            self.core.waiting = False
+            val = self.core.run()
+            self.seen.add(val)
+            if val < 0 or val > 128:
+                print(val)
+                return
+            else:
+                print(chr(val), end='')
+            if chr(val) in (':', '?'):
+                self.core.waiting = False
+                print(chr(self.core.run()))
+                return
+
+    def run(self, program, A, B, C, show=False):
+        self.core.reset()
+        self.core.program[0] = 2
+
+        if show:
+            final = 'y\n'
+        else:
+            final = 'n\n'
+
+        # step 1 -- draw map, ask for main
+        self.check_output()
+
+        # calculate all the inputs it wants
+        inputs = []
+        for entry in (program, A, B, C, final):
+            inputs.extend(self._to_ascii(entry))
+
+        # pass set of inputs for it to grab as needed
+        self.core.secondary = inputs
+
+        # run for function input
+        val = self.core.run()
+
+        # ask for function A:
+        self.check_output()
+        val = self.core.run()
+
+        # ask for function B:
+        self.check_output()
+        val = self.core.run()
+
+        # ask for function C:
+        self.check_output()
+        val = self.core.run()
+
+        # ask for video feed:
+        self.check_output()
+
+        if show:
+            self._run_video()
+        else:
+            self.check_output()
+
 
 def to_grid(text):
     grid = {}
@@ -251,35 +352,60 @@ def to_grid(text):
     grid[position] = '\n'
     return grid
 
+import re
+def single_run(string, A_len, C_len):
+    try_A = string[:A_len]
+    try_C = string[-C_len:]
+    rem = re.sub(try_A, 'A', string)
+    rem = re.sub(try_C, 'C', rem)
+
+    checks = rem.split(',')
+    prev_val = None
+    try_B = []
+    for val in checks:
+        if val in ('A', 'C'):
+            if len(try_B) > 0:
+                break
+            continue
+        if prev_val not in ('A', 'C'):
+            try_B.append(val)
+    try_B = ','.join(try_B)
+    rem = re.sub(try_B, 'B', rem)
+    return rem, try_A, try_B, try_C
+
+
+def subset(string):
+    orig = string
+    for A_len in range(20, 2, -1):
+        for C_len in range(20, 2, -1):
+            string = orig
+            rem, try_A, try_B, try_C = single_run(string, A_len, C_len)
+            if set(rem.split(',')) == set('ABC'):
+                return rem, try_A, try_B, try_C
+
 
 def get_answer(data, part2=False):
-    grid = to_grid(data)
-    testmap = MapGrid(grid)
-    print(testmap.search())
-    # path = 'R,'
-    # p, d = testmap.follow_path(path, testmap.start, testmap.start_d)
-    # testmap._next_step(path, p, d)
-    # print(p, d)
-    # print(testmap._find_distance(p, d))
+    program = list(map(int, data[0].split(',')))
+    r = Robot([x for x in program])
 
-    # for path in testmap.search():
-    #     if path == '':
-    #         continue
-    #     print(path)
+    m = MapGrid(r.grid)
+    # print(m)
 
-    # plot_grid(grid)
-    # print()
-    # return get_intersections(grid)
-
-    # program = list(map(int, data[0].split(',')))
-    # r = Robot([x for x in program])
+    # # tp = m.search()
+    # # print(tp)
+    tp = 'L,4,R,8,L,6,L,10,L,6,R,8,R,10,L,6,L,6,L,4,R,8,L,6,L,10,L,6,R,8,R,10,L,6,L,6,L,4,L,4,L,10,L,4,L,4,L,10,L,6,R,8,R,10,L,6,L,6,L,4,R,8,L,6,L,10,L,6,R,8,R,10,L,6,L,6,L,4,L,4,L,10'
+    m.display_path(tp)
 
 
+    pattern, a, b, c = subset(tp)
+    print(pattern, len(pattern))
+    print(a, len(a))
+    print(b, len(b))
+    print(c, len(c))
 
-    # steps = 'L,4,R,8,L,6,L,4'
-    # return run_path(r.grid, steps)
-    # trace_grid(r.grid)
-    # return get_intersections(r.grid)
+    r.run(pattern + '\n', a + '\n', b + '\n' , c + '\n')
+    print()
+    print(r.seen)
 
 
 if __name__ == '__main__':
@@ -301,8 +427,7 @@ if __name__ == '__main__':
 ....#...#......
 ....#...#......
 ....#####......'''
-    print(get_answer(sample))
-    # inputs = get_instructions(year, day)
-
+    # print(get_answer(sample))
+    inputs = get_instructions(year, day)
     # print(get_answer(inputs, part2=False))
-    # print(get_answer(inputs, part2=True))
+    print(get_answer(inputs, part2=True))
