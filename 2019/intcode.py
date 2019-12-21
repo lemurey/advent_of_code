@@ -21,7 +21,7 @@ class Intcode():
             self.output_func = lambda x: print('{}{}'.format(x, sep), end='')
         elif mode == 'linked':
             self.output_func = self._linked_output
-        elif mode == 'robot':
+        elif mode in ('robot', 'ascii robot', 'drone'):
             self.first = False
             self.output_func = self._robot_output
         else:
@@ -80,6 +80,7 @@ class Intcode():
 
     def reset(self):
         self.cur_ind = 0
+        self.program = Memory(enumerate(self.orig))
         self.halted = False
         self.waiting = False
 
@@ -160,7 +161,12 @@ class Intcode():
         self.program[o] = a1 * a2
 
     def __input(self, o):
-        if self.first:
+        if self.mode in ('ascii robot', 'drone'):
+            if len(self.secondary) == 0:
+                val = -1
+            else:
+                val = self.secondary.pop(0)
+        elif self.first:
             val = self.input
             self.first = False
         else:
