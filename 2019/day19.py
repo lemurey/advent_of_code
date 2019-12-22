@@ -1,5 +1,3 @@
-import sys
-sys.path.append('/Users/lee.murray/projects/advent_of_code/')
 from aoc_utilities import get_instructions
 import os
 from intcode import Intcode
@@ -33,7 +31,7 @@ def get_answer(data, part2=False):
     comp = Intcode(program, mode='drone')
 
     if part2:
-        return search(comp, 10))
+        return search(comp, 10)
 
     x_max = 50
     y_max = 50

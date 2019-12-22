@@ -97,12 +97,12 @@ for the large number of iterations:
     b = b * b_mul
     once again these are done MOD N. so now we can do a whole shuffle as one
     quick operation, but if we want to repeat 101741582076661 (~ 100 trillion times)
-    we need to collapse more, (or wait hundreds to thousans of hours)
+    we need to collapse more, (or wait hundreds to thousands of hours)
 
     well, b is fairly easy to collapse, we are multiplying by a constant n times,
     that is literally the definition of exponentition
     so b_n is b after n shuffles clearly:
-    b_n = b ** b_mul % N
+    b_n = (b ** b_mul) % N
     once again python helps here by having built in exponentiation with
     mod
     b_n = pow(b_mul, n, N)
