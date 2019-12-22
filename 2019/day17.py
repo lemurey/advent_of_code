@@ -352,6 +352,7 @@ def to_grid(text):
     grid[position] = '\n'
     return grid
 
+
 import re
 def single_run(string, A_len, C_len):
     try_A = string[:A_len]
@@ -389,23 +390,13 @@ def get_answer(data, part2=False):
     r = Robot([x for x in program])
 
     m = MapGrid(r.grid)
-    # print(m)
 
-    # # tp = m.search()
-    # # print(tp)
-    tp = 'L,4,R,8,L,6,L,10,L,6,R,8,R,10,L,6,L,6,L,4,R,8,L,6,L,10,L,6,R,8,R,10,L,6,L,6,L,4,L,4,L,10,L,4,L,4,L,10,L,6,R,8,R,10,L,6,L,6,L,4,R,8,L,6,L,10,L,6,R,8,R,10,L,6,L,6,L,4,L,4,L,10'
+    tp = m.search()
     m.display_path(tp)
 
-
     pattern, a, b, c = subset(tp)
-    print(pattern, len(pattern))
-    print(a, len(a))
-    print(b, len(b))
-    print(c, len(c))
 
     r.run(pattern + '\n', a + '\n', b + '\n' , c + '\n')
-    print()
-    print(r.seen)
 
 
 if __name__ == '__main__':

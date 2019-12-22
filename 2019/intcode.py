@@ -14,6 +14,12 @@ class Intcode():
         self.first = True
         self.debug = False
 
+        self.orig = [x for x in program]
+        self.secondary = secondary
+        self.mode = mode
+        self.parent = parent
+        self.indicator = indicator
+
         if mode == 'debug':
             self.output_func = print
             self.debug = True
@@ -24,14 +30,9 @@ class Intcode():
         elif mode in ('robot', 'ascii robot', 'drone'):
             self.first = False
             self.output_func = self._robot_output
+            self.secondary = []
         else:
             self.output_func = lambda x: None
-
-        self.orig = [x for x in program]
-        self.secondary = secondary
-        self.mode = mode
-        self.parent = parent
-        self.indicator = indicator
 
         self.cur_ind = 0
         self.relative_base = 0
