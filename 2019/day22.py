@@ -18,7 +18,7 @@ deal into new stack:
     this is pretty easy, we are just reversing the deck, so all we need to do
     is flip b (b = -b), but we also need to make the first card the last card,
     we can do this by adding the new b value to a
-    so (0, 1) becomes (-1, -1) (note that offset an be negative, works like a python)
+    so (0, 1) becomes (-1, -1) (note that the a an be negative, works like a python)
     list, where -1 means the last value
 
     for the example above
@@ -31,7 +31,7 @@ deal into new stack:
     a = (a + b) % N
 
 cut n cards:
-    shift the list around, all we are doing here is modifying offset, specifially
+    shift the list around, all we are doing here is modifying a, specifially
     we are moving the nth card to the start of the list, the nth card is
     a + b * n, we are also modifying all cards by that new index (everything is
     just moving over, the wrapping comes about because of the modulus)
