@@ -184,25 +184,20 @@ class Grid:
                 return num_steps, path, levels
 
             if pos in self.teleports:
-                skip_tele = False
                 if mode != 'tele':
                     portal = self.labels[pos]
                     if self.portals[portal]['inner'] == pos: # jump down a level
                         level += 1
                     elif self.portals[portal]['outer'] == pos:
-                        if level == 0:
-                            skip_tele = True
-                        else:
-                            level -= 1
+                        level -= 1
                     else:
                         print('no good')
-                if not skip_tele:
-                    pos = self.teleports[pos]
-                    path = path | set([pos])
-                    num_steps += 1
+                pos = self.teleports[pos]
+                path = path | set([pos])
+                num_steps += 1
 
             for neighbor in self._find_valid_neighbor(pos):
-                if level >= len(self.portals):
+                if level >= len(self.portals) or level < 0:
                     continue
                 if (neighbor, level) in seen:
                     continue
