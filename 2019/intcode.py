@@ -31,6 +31,9 @@ class Intcode():
             self.first = False
             self.output_func = self._robot_output
             self.secondary = []
+        elif mode == 'network':
+            self.output_func = self._network_output
+            self.secondary = []
         else:
             self.output_func = lambda x: None
 
@@ -144,6 +147,9 @@ class Intcode():
     def _linked_output(self, value):
         self.waiting = True
 
+    def _network_output(self, value):
+        self.waiting = True
+
     def _robot_output(self, value):
         # print(value, end=', ')
         self.waiting = True
@@ -170,6 +176,13 @@ class Intcode():
         elif self.first:
             val = self.input
             self.first = False
+        elif self.mode == 'network':
+            if len(self.secondary) == 0:
+                val = -1
+                self.output_val = None
+                self.waiting = True
+            else:
+                val = self.secondary.pop(0)
         else:
             val = self.secondary
         self.program[o] = val
