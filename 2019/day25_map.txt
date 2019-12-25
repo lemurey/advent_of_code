@@ -1,0 +1,27 @@
+                                                                                             sick bay(dark matter)
+                                                                                                 |
+                                    stables -  crew quarters - engineering - corridor         Kitchen - hallway 
+                                                    |               |                            |
+                                                    | checkpoint - arcade  (lava)                |
+                                                    |                                            |
+    storage - passages - gift wrapping center - science lab - holodeck(giant magnet) - warp drive maintenance
+                 |                                                  |
+          hot chocolate fountain                                  entry
+                                                                    |
+                                                               Observatory - navigation
+
+too heavy:
+    ornament
+    whirled peas + astrolabe + candy cane + hologram
+    klein bottle + hologram + astrolabe + whilred peas + tambourine
+too light:
+    whirled peas + astrolabe + candy cane + klein bottle + tambourine
+
+ornament, tambourine, whirled peas, dark matter
+candy cane, astrolabe, hologram, klein bottle
+
+infinite loop - breaks things
+escape pod - breaks things
+lava - breaks things
+giant electromagnet - breaks things
+photons - breaks things
