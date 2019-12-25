@@ -17,6 +17,9 @@ too heavy:
 too light:
     whirled peas + astrolabe + candy cane + klein bottle + tambourine
 
+correct combo:
+    klein bottle, hologram, astrolabe, tambourine
+
 ornament, tambourine, whirled peas, dark matter
 candy cane, astrolabe, hologram, klein bottle
 
