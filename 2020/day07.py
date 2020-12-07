@@ -56,7 +56,7 @@ def find_gold(bags):
     return can_hold
 
 
-def num_inside(bags, start='shiny gold', seen=None):
+def num_inside(bags, start='shiny gold'):
     contains = 0
     Q = deque([start])
     seen = set()
@@ -73,6 +73,7 @@ def num_inside(bags, start='shiny gold', seen=None):
             contains += v * (1 + num_inside(bags, k))
 
     return contains
+
 
 def get_answer(data, part2=False):
     bags = process_rules(data)
