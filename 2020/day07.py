@@ -41,8 +41,8 @@ def find_gold(bags):
 
         no_new_found = True
         for bag in to_check:
-            for k, v in bags[bag].items():
-                if k in can_hold and bag not in can_hold:
+            for sub_bag in bags[bag]:
+                if sub_bag in can_hold and bag not in can_hold:
                     can_hold.add(bag)
                     no_new_found = False
 
