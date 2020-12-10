@@ -12,14 +12,14 @@ def get_counts(arr):
         diff = v2 - v1
         if diff not in counts:
             counts[diff] = 0
-        if prev_diff == diff:
-            c += 1
+
+        if diff == 3:
+            encoding.append((c))
+            c = 0
         else:
-            if prev_diff != 0:
-                encoding.append((prev_diff, c))
-            c = 1
+            c += 1
+
         counts[diff] += 1
-        prev_diff = diff
     return counts, encoding
 
 
@@ -39,11 +39,9 @@ def get_answer(data, part2=False):
     print(counts[1] * counts[3])
 
     val = 1
-    lookups = {1: 1, 2: 2, 3: 4, 4: 7}
+    lookups = {0: 1, 1: 1, 2: 2, 3: 4, 4: 7} # manually did these
     for x in encoding:
-        if x[0] != 1:
-            continue
-        val *= lookups[x[1]]
+        val *= lookups[x]
 
     return val
 
