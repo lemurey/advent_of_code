@@ -27,6 +27,30 @@ def part1(timestamp, buses):
 
 
 '''
+I was on my way to this solution before switching to figuring out the chinese
+remainders thing, I was failing to fully realize the value of the relative
+prime relationship between all the buses, so I hadn't gotten to increaseing
+the step size multiplicatively (i was trying to use just the largest bus time
+offset, that is still way too slow). My understanding is this is still an
+exponential time algorithm in the general case, but its only ~3 times slower
+than CRT for my input
+'''
+def alt_part2(buses):
+    buses = sorted(buses, key=lambda x: x[1], reverse=True)
+
+    t = 0
+    step = 1
+
+    for mod, bus in buses:
+        while True:
+            if (t + mod) % bus == 0:
+                break
+            t += step
+        step *= bus
+    return t
+
+
+'''
 after a lot of googling realized this is related to chinese remainer theorem
 I'm still not 100% sure how to do the conversion, but for a set of buses at
 various indices (the inputs) it seems clear to me that you have the following:
@@ -89,6 +113,14 @@ def chinese_remainders(lefts, rights):
     return result % prod
 
 
+def part_2(buses):
+    lefts = []
+    rights = []
+    for mod, bus in buses:
+        lefts.append(bus - mod)
+        rights.append(bus)
+    return chinese_remainders(lefts, rights)
+
 
 def get_answer(data, part2=False):
     timestamp, buses = parse_inputs(data)
@@ -97,14 +129,10 @@ def get_answer(data, part2=False):
         min_val, min_bus = part1(timestamp, buses)
         return min_val * min_bus
 
-    lefts = []
-    rights = []
-    for mod, bus in buses:
-        lefts.append(bus - mod)
-        rights.append(bus)
+    t1 = alt_part2(buses)
+    t2 = part_2(buses)
 
-    return chinese_remainders(lefts, rights)
-
+    return t1, t2
 
 
 if __name__ == '__main__':
@@ -122,5 +150,8 @@ if __name__ == '__main__':
 #     inputs = '''1
 # 67,7,x,59,61'''.split('\n')
 
-    print(get_answer(inputs, part2=False))
+#     inputs = '''1
+# 1789,37,47,1889'''.split('\n')
+
+    # print(get_answer(inputs, part2=False))
     print(get_answer(inputs, part2=True))
