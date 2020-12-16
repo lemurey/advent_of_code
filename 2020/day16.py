@@ -1,6 +1,9 @@
 from aoc_utilities import get_instructions
 from pathlib import Path
 
+import os, sys, time
+from numpy.random import choice, random, randint
+
 
 def parse_data(data):
     rules = {}
@@ -90,8 +93,87 @@ def check_valid(rules, tickets, verbose=False):
     return error_rate, valid_tickets
 
 
+def _random_key(length=18, prob=0.7, chars='?*|-?\/^#@'):
+    chars = list(chars)
+    out = ''
+    for _ in range(length):
+        if random() < prob:
+            out += choice(chars)
+    return out
+
+
+def _make_template(my_ticket, reverses, randoms):
+    overall_length = 127
+    template = '.' + '-' * overall_length + '.' + '\n'
+    for i, v in enumerate(my_ticket):
+        if i % 4 == 0:
+            if i == 0:
+                template += f'|{" " * overall_length}|\n|'
+            else:
+                template += f'|\n|{" " * overall_length}|\n|'
+        if v in reverses:
+            key = reverses[v]
+        else:
+            key = randoms[i]
+
+        template += f'\t{key: >18}: {v}\t'
+    template += f'|\n|{" " * overall_length}|\n'
+    template += "'" + '-' * overall_length + "'"
+    return template
+
+
+def _show_template(template, sleep_time=0.2):
+    os.system('clear')
+    sys.stdout.write(template)
+    sys.stdout.flush()
+    time.sleep(sleep_time)
+
+
+def run_decode_animation(my_ticket, found, randoms, update_val):
+
+    new_index = [i for i, v in enumerate(my_ticket) if v == update_val][0]
+
+    new_randoms = randoms[:]
+
+    animation_length = randint(5, 10)
+
+    for _ in range(animation_length):
+        new_randoms[new_index] = _random_key(chars='dkizerausocl ntp')
+        template = _make_template(my_ticket, found, new_randoms)
+        _show_template(template, 0.02)
+
+
+def decode_ticket(fields, my_ticket):
+    aligned = {}
+    found = {}
+    randoms = [_random_key(chars='?') for _ in my_ticket]
+    template = _make_template(my_ticket, found, randoms)
+
+    _show_template(template)
+
+    while len(found) < len(fields):
+        for k, v in fields.items():
+            if len(v) == 1:
+                val = list(v)[0]
+                aligned[k] = val
+
+                update_val = my_ticket[val]
+                run_decode_animation(my_ticket, found, randoms, update_val)
+                found[update_val] = k
+                template = _make_template(my_ticket, found, randoms)
+                _show_template(template)
+
+                to_remove = val
+
+        for v in fields.values():
+            if to_remove in v:
+                v.remove(to_remove)
+
+    return aligned
+
 def get_answer(data, part2=False):
     rules, tickets, my_ticket = parse_data(data)
+
     error_rate, valid_tickets = check_valid(rules, tickets)
     if not part2:
         return error_rate
@@ -99,13 +181,15 @@ def get_answer(data, part2=False):
     valid_tickets = valid_tickets + [my_ticket]
 
     results = check_fields(rules, valid_tickets)
-    results = match_fields(results)
+    # results = match_fields(results)
+
+    results = decode_ticket(results, my_ticket)
 
     output = 1
     for k, v in results.items():
         if 'departure' in k:
             output *= my_ticket[v]
-
+    print()
     return output
 
 
