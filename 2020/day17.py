@@ -72,7 +72,6 @@ def run_cycle(state, which=1):
 
 
 def show_state(state, add_on=''):
-
     slices = {}
     for x, y, z in sorted(state):
         if z not in slices:
