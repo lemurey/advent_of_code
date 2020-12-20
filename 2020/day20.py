@@ -1,17 +1,15 @@
-from aoc_utilities import get_instructions
+from aoc_utilities import get_instructions, timeit
 from pathlib import Path
 import numpy as np
-from collections import defaultdict, deque
 
-import json
-
+OFFSETS = {'up': (0, -1), 'left': (-1, 0),
+           'down': (0, 1), 'right': (1, 0)}
 
 def image_to_array(image):
-    holder = []
+    holding = []
     for row in image:
-        converted = [1 if x == '#' else 0 for x in row]
-        holder.append(converted)
-    return np.array(holder)
+        holding.append([1 if x == '#' else 0 for x in row])
+    return np.array(holding)
 
 
 def array_to_image(array):
@@ -19,21 +17,162 @@ def array_to_image(array):
                       .replace(']', '')
                       .replace('1', '#')
                       .replace('0', '.')
-                      .replace(' ', '')
-                      .replace('3', ' '))
+                      .replace(' ', ''))
 
 
-def get_images(data):
-    images = {}
-    for raw in data:
-        rows = raw.split('\n')
-        header = rows[0]
-        tile = int(header.split()[1][:-1])
-        images[tile] = image_to_array(rows[1:])
-    return images
+class Tile:
+    def __init__(self, header, image):
+        self.id = int(header.split()[1][:-1])
+        self.array = image_to_array(image)
+        self.image = array_to_image(self.array)
+        self.fixed = False
+
+    def align(self, other):
+        for a1 in self:
+            for a2 in other:
+                c = compare(a1, a2)
+                if c in ('up', 'left', 'down', 'right'):
+                    break
+            else:
+                continue
+            break
+        else:
+            return False
+
+        # set this tile and other as fixed
+        self.fixed = True
+        other.fixed = True
+
+        # update the arrays to the aligned version
+        self.array = a1
+        other.array = a2
+
+        # update the images based on the array
+        self.image = array_to_image(self.array)
+        other.image = array_to_image(other.array)
+
+        # set the x and y cooordinate of the other tile
+        dx, dy = OFFSETS[c]
+        other.x = self.x + dx
+        other.y = self.y + dy
+        return True
+
+    def __iter__(self):
+        if self.fixed:
+            yield self.array
+            return
+        for rot in range(4):
+            yield np.rot90(self.array, rot)
+            yield np.flipud(np.rot90(self.array, rot))
+            yield np.fliplr(np.rot90(self.array, rot))
+
+    def __str__(self):
+        return self.image
 
 
-def _gen_edges(image):
+class Image:
+    def __init__(self, data):
+        self.tiles = self._make_tiles(data)
+        self.image = None
+
+    def _make_tiles(self, data):
+        tiles = {}
+        for row in data:
+            rows = row.split('\n')
+            tile = Tile(rows[0], rows[1:])
+            tiles[tile.id] = tile
+
+        self.keys = list(tiles.keys())
+        return tiles
+
+    def _crawl_tiles(self):
+        # grab the first tile and define it at 0, 0
+        start = self[0]
+        start.x = 0
+        start.y = 0
+
+        q = [start]
+
+        num_aligned = 1
+        while num_aligned < len(self.tiles):
+            current = q.pop()
+
+            for tile in self:
+                if (tile.id == current.id) or (current.fixed and tile.fixed):
+                    continue
+
+                if current.align(tile):
+                    num_aligned += 1
+                    q.append(tile)
+
+    def _reconstruct(self):
+        outer = None
+        temp = None
+        prev = None
+        for tile in sorted(self, key=lambda t: (t.y, t.x)):
+            if tile.y != prev:
+                if outer is None:
+                    outer = temp
+                else:
+                    outer = np.append(outer, temp, axis=0)
+                temp = None
+
+            if temp is None:
+                temp = tile.array[1:-1, 1:-1]
+            else:
+                temp = np.append(temp, tile.array[1:-1, 1:-1], axis=1)
+            prev = tile.y
+
+        outer = np.append(outer, temp, axis=0)
+
+        image = array_to_image(outer)
+        self.image = Tile('Tile -1:', image.split('\n'))
+        ## calling string on a large array yields truncated arrays by default
+        ## so my array_to_image function fails on the full size image, manually
+        ## convert it instead
+        self.image.array = outer
+        im = []
+        for row in outer:
+            im.append(''.join(['#' if x == 1 else '.' for x in row]))
+        self.image.image = '\n'.join(im)
+
+    def get_corners(self):
+        if self.image is None:
+            self.reconstruct
+
+        min_x = min(self, key=lambda t: t.x).x
+        max_x = max(self, key=lambda t: t.x).x
+        min_y = min(self, key=lambda t: t.y).y
+        max_y = max(self, key=lambda t: t.y).y
+
+        corners = []
+        for tile in self:
+            if ((tile.x == min_x or tile.x == max_x) and
+                (tile.y == min_y or tile.y == max_y)):
+                corners.append(tile)
+        return corners
+
+    def reconstruct(self):
+        self._crawl_tiles()
+        self._reconstruct()
+
+    def __str__(self):
+        if self.image is None:
+            return 'Image reconstruction has not been run'
+        return self.image.image
+
+    def __iter__(self):
+        for k in self.keys:
+            yield self.tiles[k]
+
+    def __getitem__(self, index):
+        if index in self.tiles:
+            return self.tiles[index]
+        else:
+            return self.tiles[self.keys[index]]
+
+
+def get_edges(image):
     top = image[0, :]
     bottom = image[-1, :]
     left = image[:, 0]
@@ -41,195 +180,18 @@ def _gen_edges(image):
     return top, bottom, left, right
 
 
-def _comp_images(image1, image2):
-    top1, bottom1, left1, right1 = _gen_edges(image1)
-    top2, bottom2, left2, right2 = _gen_edges(image2)
+def compare(tile1, tile2):
+    t1, b1, l1, r1 = get_edges(tile1)
+    t2, b2, l2, r2 = get_edges(tile2)
 
-    if (np.all(top1 == bottom2) or np.all(right1 == left2) or
-        np.all(bottom1 == top2) or np.all(left1 == right2) or
-        np.all(top2 == bottom1) or np.all(right2 == left1) or
-        np.all(bottom2 == top1) or np.all(left2 == right1)) and not orientation:
-        return True
-
-    return False
-
-
-def run_checks(image1, image2, tile1, tile2, neighbors):
-     # check raw images
-    if _comp_images(image1, image2):
-        neighbors[tile1].add(tile2)
-        neighbors[tile2].add(tile1)
-    # rotate up down
-    elif _comp_images(np.flipud(image1), image2):
-        neighbors[tile1].add(tile2)
-        neighbors[tile2].add(tile1)
-    # rotate left right
-    elif _comp_images(np.fliplr(image1), image2):
-        neighbors[tile1].add(tile2)
-        neighbors[tile2].add(tile1)
-
-
-def find_neighbors(images):
-    neighbors = defaultdict(set)
-
-    for tile1, image1 in images.items():
-        for tile2, image2 in images.items():
-            if tile1 == tile2:
-                continue
-
-            if (len(neighbors[tile1]) == 4) and (len(neighbors[tile2]) == 4):
-                continue
-
-            for rot in range(4):
-                run_checks(np.rot90(image1, rot), image2, tile1, tile2, neighbors)
-                run_checks(np.rot90(image2, rot), image1, tile1, tile2, neighbors)
-
-    return neighbors
-
-
-def alterations(image, fixed=False):
-    if fixed:
-        yield image
-        return
-    for rot in range(4):
-        yield np.rot90(image, rot)
-        yield np.flipud(np.rot90(image, rot))
-        yield np.fliplr(np.rot90(image, rot))
-
-
-def _find_direction(image1, image2):
-    top1, bottom1, left1, right1 = _gen_edges(image1)
-    top2, bottom2, left2, right2 = _gen_edges(image2)
-
-    if np.all(top1 == bottom2):
+    if np.all(t1 == b2):
         return 'up'
-    if np.all(right1 == left2):
+    if np.all(r1 == l2):
         return 'right'
-    if np.all(bottom1 == top2):
-        return 'down'
-    if np.all(left1 == right2):
+    if np.all(l1 == r2):
         return 'left'
-
-
-def align_images(image1, image2, image1_fixed, image2_fixed):
-    for i1 in alterations(image1, image1_fixed):
-        for i2 in alterations(image2, image2_fixed):
-            c = _find_direction(i1, i2)
-            if c in ('up', 'left', 'down', 'right'):
-                return i1, i2, c
-
-
-def crawl_neighbors(neighbors, images):
-    for k, v in neighbors.items():
-        if len(v) == 2:
-            start = k
-            break
-
-    fixed = {}
-    reconstruction = {start: (0, 0)}
-    q = [start]
-
-    dirs = {'up': (0, -1), 'left': (-1, 0),
-            'down': (0, 1), 'right':(1, 0)}
-
-    while len(fixed) < len(images):
-
-        current = q.pop()
-        for neighbor in neighbors[current]:
-
-            if (current in fixed) and (neighbor in fixed):
-                continue
-
-            fixed_1 = current in fixed
-            image_1 = fixed.get(current, images[current])
-            fixed_2 = neighbor in fixed
-            image_2 = fixed.get(neighbor, images[neighbor])
-
-            image_1, image_2, direction = align_images(image_1, image_2,
-                                                       fixed_1, fixed_2)
-            x, y = reconstruction[current]
-            dx, dy = dirs[direction]
-            nx = x + dx
-            ny = y + dy
-            reconstruction[neighbor] = (nx, ny)
-            fixed[current] = image_1
-            fixed[neighbor] = image_2
-
-            q.append(neighbor)
-
-    return fixed, reconstruction
-
-
-def recreate(neighbors, images, fname):
-
-    if Path(fname).exists():
-        with open(fname, 'r') as f:
-            d = json.load(f)
-            of = d['fixed']
-            fixed = {}
-            for k, v in of.items():
-                fixed[k] = image_to_array(v.split('\n'))
-            reconstruction = d['reconstruction']
-    else:
-        fixed, reconstruction = crawl_neighbors(neighbors, images)
-
-        with open(fname, 'w') as f:
-            nf = {}
-            for k, v in fixed.items():
-                nf[k] = array_to_image(v)
-
-            d = {'fixed': nf, 'reconstruction': reconstruction}
-            json.dump(d, f, indent=2)
-
-    outer = None
-    temp = None
-    prev = 0
-
-    for k, v in sorted(reconstruction.items(), key=lambda x: (x[1][1],x[1][0])):
-
-        if v[1] != prev:
-            if outer is None:
-                outer = temp
-            else:
-                outer = np.append(outer, temp, axis=0)
-            temp = None
-
-        img = fixed[k][1:-1, 1:-1]
-
-        if temp is None:
-            temp = img
-        else:
-            temp = np.append(temp, img, axis=1)
-
-        prev = v[1]
-    outer = np.append(outer, temp, axis=0)
-
-    return outer
-
-
-def initialize(data):
-    images = get_images(data)
-
-    if len(images) == 9:
-        fname = 'test_data_neighbors.json'
-    else:
-        fname = 'day20_neighbors.json'
-
-    if Path(fname).exists():
-        with open(fname, 'r') as f:
-            nn = json.load(f)
-        neighbors = {}
-        for k, v in nn.items():
-            neighbors[int(k)] = set([int(x) for x in v])
-    else:
-        neighbors = find_neighbors(images)
-        nn = {}
-        for k, v in neighbors.items():
-            nn[k] = list(v)
-        with open(fname, 'w') as f:
-            json.dump(nn, f)
-
-    return images, neighbors, fname
+    if np.all(b1 == t2):
+        return 'down'
 
 
 def convolve(mask, image):
@@ -244,37 +206,31 @@ def convolve(mask, image):
     matches = 0
     for y in range(y_steps):
         for x in range(x_steps):
-            # print(f'{x}:{x + x_offset}, {y}:{y + y_offset}')
             sub = image[x:x + x_offset, y: y + y_offset]
             if np.all((sub * mask) == mask):
                 matches += 1
     return matches
 
-def get_answer(data, part2=False):
-    images, neighbors, fname = initialize(data)
 
-    if not part2:
-        corners = []
-        for k, v in neighbors.items():
-            if len(v) == 2:
-                corners.append(k)
-        return np.prod(corners)
+def get_answer(inputs, part2=False):
+    image = Image(inputs)
+    image.reconstruct()
 
-    aligned_fname = Path(fname).stem +'_reconstruction.json'
-    image = recreate(neighbors, images, aligned_fname)
+    corners = [x.id for x in image.get_corners()]
 
-    mask_template = ['                  # ',
-                     '#    ##    ##    ###',
-                     ' #  #  #  #  #  #   ']
-    mask = image_to_array(mask_template)
+    print(np.prod(corners))
+
+    mask = image_to_array(['                  # ',
+                           '#    ##    ##    ###',
+                           ' #  #  #  #  #  #   '])
 
     max_serpents = 0
-    for i in alterations(image):
+    for i in image.image:
         num_serpents = convolve(mask, i)
         if num_serpents > max_serpents:
             max_serpents = num_serpents
 
-    return image.sum() - max_serpents * mask.sum()
+    return image.image.array.sum() - max_serpents * mask.sum()
 
 
 if __name__ == '__main__':
@@ -393,5 +349,5 @@ if __name__ == '__main__':
 # ..#.......
 # ..#.###...'''.split('\n\n')
 
-    print(get_answer(inputs, part2=False))
+    # print(get_answer(inputs, part2=False))
     print(get_answer(inputs, part2=True))
