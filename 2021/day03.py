@@ -45,7 +45,6 @@ def run_rating(sub, counts, which=0):
 
 def get_answer(data, part2=False):
     counts = get_counts(data)
-    print(counts)
     if part2:
         return part_2(data, counts)
     return part_1(counts)
