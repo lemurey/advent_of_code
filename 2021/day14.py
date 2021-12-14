@@ -34,12 +34,18 @@ def run_insertion_v2(counts, rules):
 
 def get_singles(counts, string):
     singles = Counter()
+
+    ## this adds the counts for each single letter, but it double counts
+    ## so at the end will divide all the results by 2 to account for that
     for (k0, k1), v in counts.items():
         singles[k0] += v
         singles[k1] += v
+
+    ## I am not sure why this is necessary, but without it I don't match
+    ## the results in the example
     singles[string[0]] += 1
     singles[string[-1]] += 1
-    return singles
+    return Counter({k: v // 2 for k, v in singles.items()})
 
 
 def get_answer(data, part2=False):
@@ -53,8 +59,7 @@ def get_answer(data, part2=False):
 
     singles = get_singles(output, data[0])
 
-    return ((singles.most_common()[0][1] // 2) -
-            (singles.most_common()[-1][1] // 2))
+    return singles.most_common()[0][1] - singles.most_common()[-1][1]
 
 
 if __name__ == '__main__':
