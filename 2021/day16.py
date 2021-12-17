@@ -46,7 +46,14 @@ It is possible the issue is in how I am doing the conversions
 between hex, binary, and base10. I found that calling bin(int(x, 16))
 on the main input fails because python removes some zero padding, this
 is why I use the CONVERT dictionary instead. it is possible something
-similar is happening when I read
+similar is happening when I read the values for literals
+
+it is also possible my book-keeping is wrong somehow in the operators
+I honestly had some difficulty parsing what I was doing there, I
+vastly prefer the class based approach
+(actually my original version, long since deleted, was a class,
+attempting to use a position tracker, but I couldn't get the recursion
+right)
 '''
 
 class Packet:
