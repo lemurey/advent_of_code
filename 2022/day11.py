@@ -5,9 +5,6 @@ from functools import partial
 
 OPS = {'+': add, '*': mul}
 
-def _worry_calc(const, x):
-    pass
-
 
 def parse_instructions(data):
     monkies = []
