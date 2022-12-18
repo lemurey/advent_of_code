@@ -4,3 +4,4 @@
 images/*
 convert.sh
 test.txt
+log_*
