@@ -60,9 +60,6 @@ def search_robot_space(blueprint, t=24):
         add_ore = r_o < max_ore
         add_clay = r_c < r_ob_cc
         add_obsidian = r_ob < r_g_obc
-        # r_o = min(r_o, max_ore)
-        # r_c = min(r_c, r_ob_cc)
-        # r_ob = min(r_ob, r_g_obc)
         # if you can't spend more of a resource in the remaing time
         # than you can generate then cap the value becuase it doesn't
         # impact the final geode count
