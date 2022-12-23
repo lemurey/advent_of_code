@@ -63,7 +63,7 @@ def run_one_sim(elves, dirs):
     # add moved elves back in
     elves |= new_locs
 
-    return elves
+    return elves, len(to_move)
 
 
 def _get_extreme(grid, op):
@@ -106,20 +106,17 @@ def get_answer(data, part2=False):
     show_grid(elves, F)
     ds = BASE_DIRS
     c = 0
-    while True:
-        prev_elves = set(e for e in elves)
-        elves = run_one_sim(elves, ds)
+    num_moved = 1
+    while num_moved != 0:
+        elves, num_moved = run_one_sim(elves, ds)
         c += 1
         if c == 10:
             print(f'score at round 10: {score_grid(elves)}')
-        if elves == prev_elves:
-            show_grid(elves, f=F)
-            return c
         if not c % 100:
             print(f'at round: {c}')
         ds = ds[1:] + ds[0]
-
-    return
+    show_grid(elves, f=F)
+    return c
 
 
 if __name__ == '__main__':
