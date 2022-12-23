@@ -43,7 +43,10 @@ def run_one_sim(elves, dirs):
     # part 1
     for elf in can_move:
         for d in dirs:
-            if all(n not in elves for n in get_neighbors(*elf, DIR_OPTIONS[d])):
+            for neighbor_elf in get_neighbors(*elf, DIR_OPTIONS[d]):
+                if neighbor_elf in elves:
+                    break
+            else:
                 nx, ny = elf[0] + LABELS[d][0], elf[1] + LABELS[d][1]
                 if (nx, ny) not in proposals:
                     proposals[(nx, ny)] = []
