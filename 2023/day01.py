@@ -6,7 +6,6 @@ def process_line(line):
     replacements = {"zero": "0", "one": "1", "two": "2", "three": "3",
                     "four": "4", "five": "5", "six": "6", "seven": "7",
                     "eight": "8", "nine": "9"}
-    store = ''
     nl = ''
     for i, char in enumerate(line):
         if char.isdigit():
@@ -15,7 +14,6 @@ def process_line(line):
         for key in replacements.keys():
             if line[i:i+len(key)] == key:
                 nl += replacements[key]
-
     return nl
 
 
