@@ -20,7 +20,6 @@ def process_line(line):
 def get_answer(data, part2=False):
     values = []
     for line in data:
-        store = []
         if part2:
             nl = process_line(line)
         else:
