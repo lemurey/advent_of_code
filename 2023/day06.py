@@ -1,11 +1,29 @@
 from aoc_utilities import get_instructions
 from pathlib import Path
 
+from math import floor, ceil
+
 
 def run_race(total_time, hold_time):
     speed = hold_time
     distance = speed * (total_time - hold_time)
     return distance
+
+
+def fast_version(total_time, r):
+    '''
+    just need to solve h**2 - ht + r = 0, it's time for the quadratic formula!
+    (t +/- (t**2 - 4r) ** 1/2) / 2
+
+    this is for exact equality, so add a small amount to r to gauruntee victory
+    '''
+    r += 0.01
+    o1 = (total_time + ((total_time**2) - (4 * r))**0.5) / 2
+    o2 = (total_time - ((total_time**2) - (4 * r))**0.5) / 2
+    # we want  times greater than the smaller and less than larger
+    o1, o2 = sorted((o1, o2))
+
+    return ceil(o1), floor(o2)
 
 
 def get_answer(data, part2=False):
@@ -18,12 +36,8 @@ def get_answer(data, part2=False):
 
     modes = 1
     for t, r in zip(times, records):
-        cur = 0
-        for i in range(t):
-            d = run_race(t, i)
-            if d > r:
-                cur += 1
-        modes *= cur
+        l, h = fast_version(t, r)
+        modes *= (h - l) + 1
     return modes
 
 
