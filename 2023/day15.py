@@ -27,7 +27,6 @@ def prep_instructions(instructions):
     return new
 
 
-
 def hashmap(instructions, verbose=False):
     the_map = [{} for _ in range(256)]
     for label, box, lens in instructions:
