@@ -1,6 +1,52 @@
 from aoc_utilities import get_instructions
 from pathlib import Path
 from functools import reduce
+from dataclasses import dataclass
+from operator import lt, gt
+
+OPS = {'<': lt, '>': gt}
+
+
+@dataclass
+class Part:
+    x: int
+    m: int
+    a: int
+    s: int
+
+    @property
+    def total(self):
+        return self.x + self.m + self.a + self.s
+
+
+class Node:
+    def __init__(self, rule):
+        self.loc = rule.loc
+        if rule.terminal:
+            self.terminal = rule.terminal
+        else:
+            self.terminal = False
+            self.which = rule.which
+            self.comp = OPS[rule.comp]
+            self.value = rule.value
+        self.sibling = None
+        self.child = None
+
+    def set_sibling(self, sibling):
+        self.sibling = sibling
+
+    def set_child(self, child):
+        self.child = child
+
+    def __call__(self, part):
+        if self.terminal:
+            if self.loc in 'AR':
+                return self.loc
+            return self.child(part)
+        if self.comp(getattr(part, self.which), self.value):
+            return self.child(part)
+        else:
+            return self.sibling(part)
 
 
 class Rule:
@@ -38,6 +84,22 @@ def get_rules(data):
                 rules[name].append(Rule((comp[0], comp[1], comp[2:], loc)))
 
 
+def get_parts(data):
+    parts = []
+    in_parts = False
+    for line in data:
+        if line == '':
+            in_parts = True
+            continue
+        if not in_parts:
+            continue
+        vals =[]
+        for entry in line.lstrip('{').rstrip('}').split(','):
+            vals.append(int(entry.split('=')[-1]))
+        parts.append(Part(*vals))
+    return parts
+
+
 def get_count(current_rule, rules, ranges=None):
     if ranges is None:
         ranges = dict(zip(('xmas'), ((1, 4000) for _ in range(4))))
@@ -73,12 +135,37 @@ def get_count(current_rule, rules, ranges=None):
     return total
 
 
+def make_nodes(all_rules):
+    all_nodes = {'A': [Node(Rule('A'))], 'R': [Node(Rule('R'))]}
+    for name, rules in all_rules.items():
+        all_nodes[name]= [Node(r) for r in rules]
+
+    for name, nodes in all_nodes.items():
+        if name in 'AR':
+            continue
+        sibling = None
+        for node in nodes[::-1]:
+            node.set_sibling(sibling)
+            node.child = all_nodes[node.loc][0]
+            sibling = node
+
+    return all_nodes
+
+
 def get_answer(data, part2=False):
     rules = get_rules(data)
-    # for k, v in rules.items():
-        # print(k, v)
-    return get_count('in', rules)
+    parts = get_parts(data)
+    nodes = make_nodes(rules)
 
+    start = nodes['in'][0]
+    total = 0
+
+    for part in parts:
+        if start(part) == 'A':
+            total += part.total
+    print(total)
+
+    return get_count('in', rules)
 
 
 if __name__ == '__main__':
