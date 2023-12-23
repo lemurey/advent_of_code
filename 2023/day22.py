@@ -189,14 +189,14 @@ def get_answer(data, part2=False):
 
     # check every brick, and get the set of bricks it rests on
     cannot_disentigrate = set()
-    supports = {}
+    supported = {}
     for b in board.bricks:
-        supports[b.id_num] = set()
+        supported[b] = set()
         if b.z1 == 1:
             continue
         prev = board[b.z1 - 1]
         for s in b.check_support(prev):
-            supports[b.id_num].add(s)
+            supported[b].add(s)
 
     # visualize the whole stack layer by layer
     with open('board_slices.txt', 'w') as f:
@@ -208,11 +208,42 @@ def get_answer(data, part2=False):
             f.write(vertical_view(board, z_val))
 
     # if any brick rests on only 1 brick, then that brick cannot be deleted
-    for v in supports.values():
+    for v in supported.values():
         if len(v) == 1:
             cannot_disentigrate = cannot_disentigrate.union(v)
 
-    return len([x for x in bricks if x not in cannot_disentigrate])
+    # part 1 answer
+    print(len([x for x in bricks if x not in cannot_disentigrate]))
+
+    # invert the supported dictionary to get a bricks direct supports
+    supports = {}
+    for k, v in supported.items():
+        for entry in v:
+            if entry not in supports:
+                supports[entry] = set()
+            supports[entry].add(k)
+
+    # find the chain of falls from removing a brick
+    all_falls = 0
+    for brick in bricks:
+        new_removes = [brick]
+        will_fall = set(new_removes)
+        prev = -1
+        while len(will_fall) > prev:
+            prev = len(will_fall)
+            next_removes = set()
+            for r in new_removes:
+                if r not in supports:
+                    continue
+                for e in supports[r]:
+                    if will_fall.intersection(supported[e]) == supported[e]:
+                        next_removes.add(e)
+            will_fall = will_fall.union(next_removes)
+            new_removes = next_removes
+        will_fall.remove(brick)
+        all_falls += len(will_fall)
+
+    return all_falls
 
 
 if __name__ == '__main__':
