@@ -151,7 +151,7 @@ def part2(hail):
     each would be (w.v = C) but with diffferent values for v, C. If we call the
     three vectors (a, b, c) then we can use these vectors to construct w
 
-    w = a1 * (bxc) + a2 * (cxa) + a3 * (axb)
+    w = c1 * (bxc) + c2 * (cxa) + c3 * (axb)
 
     now that we know w, we can calculate the intersection of p1 and p2, which will
     be the point r we are looking for
@@ -172,13 +172,13 @@ def part2(hail):
     dif1 = sub_vec(v1, w)
     dif2 = sub_vec(v2, w)
     normal = cross(dif1, dif2)
-    norm = dot(normal, normal)
 
     c1 = dot(normal, cross(p2, dif2))
     c2 = -1 * dot(normal, cross(p1, dif1))
     c3 = dot(normal, p1)
     # do the same plane construction that gives the vector defining the intersection point
     rock = make_w(c1, c2, c3, dif1, dif2, normal)
+    norm = dot(normal, normal)
     return Vec(rock.x / norm, rock.y / norm, rock.z / norm)
 
 
