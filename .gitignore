@@ -6,3 +6,4 @@ convert.sh
 test.txt
 log_*
 debug
+__pycache__
