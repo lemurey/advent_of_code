@@ -64,6 +64,7 @@ def fix(rule, before, after, count=0):
     # take the index that failed and flip it with the value it failed against
 
     new_rule = rule[:]
+    
     cur_val = rule[check_val[0]]
     cur_index = rule.index(check_val[1])
 
