@@ -123,25 +123,16 @@ def run_compress_v2(file_map, expanded, dots):
 
 def get_answer(data, part2=False):
     file_map, dots, expanded = make_filemap(data)
+
     compressed = run_compress(expanded[:], dots)
-
     compressed_v2 = run_compress_v2(file_map, expanded, dots)
-
-    with open('initial.txt', 'w') as f:
-        f.write(','. join(str(x) for x in expanded))
-
-    with open('temp.txt', 'w') as f:
-        f.write(','. join(str(x) for x in compressed_v2))
-
-    with open('f_map.txt', 'w') as f:
-        for (id_num, length) in file_map:
-            f.write(f'{id_num}, {length}\n')
 
     check_sum = 0
     for i, val in enumerate(compressed):
         if val != '.':
             check_sum += i * int(val)
     print(check_sum)
+    
     check_sum = 0
     for i, val in enumerate(compressed_v2):
         if val != '.':
