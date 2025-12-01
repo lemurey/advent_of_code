@@ -8,3 +8,5 @@ log_*
 debug
 __pycache__
 bots
+uv.lock
+.python-version

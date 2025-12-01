@@ -1,0 +1,6 @@
+[project]
+name = "advent-of-code"
+version = "0.1.0"
+description = "advent of code work"
+requires-python = ">=3.13"
+dependencies = ["requests"]
